@@ -23,6 +23,10 @@ const nextConfig = {
     poweredByHeader: false,
     reactStrictMode: true,
 
+    /* "use cache" + cacheTag on the service layer: public pages prerender to
+       static HTML and are invalidated per tag when the dashboard saves. */
+    cacheComponents: true,
+
     /* Native binary — keep it out of the server bundle. */
     serverExternalPackages: ["@node-rs/argon2"],
 

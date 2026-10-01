@@ -234,3 +234,13 @@
     height: 1px;
     background-color: var(--color-gold);
 }
+
+/* Route loading indicator (app/(site)/loading.js). */
+@keyframes loading-rule {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(300%);
+    }
+}

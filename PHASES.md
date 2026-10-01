@@ -14,7 +14,7 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 
 | | |
 |---|---|
-| Old site (design + content reference only, do not edit) | `E:\Works\Warrick\warrick-frontend` — React 19, Vite, react-router, Tailwind v4, framer-motion, swiper |
+| Old site (design + content reference only, do not edit) | `E:\Works\Warrick\warrick-frontend` — React 19, Vite, react-router, Tailwind v4, framer-motion, swiper. Source of truth is GitHub `sifatbro786/warrick-frontend` @ `47ea952` (local copies may be behind — pull first). |
 | **This project** | `E:\Works\Warrick\warrick-group` — Next.js **16.3.8** App Router, React 19.2, **JavaScript** (no TS), Tailwind v4, MongoDB + Mongoose 9, Node **24** |
 | Backend | Inside Next.js (Server Components, Server Actions, Route Handlers). No separate Express server. |
 | Mail | Nodemailer over SMTP (contact form → desk mailbox + acknowledgement to sender) |
@@ -46,8 +46,8 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Foundation, models, seed | ✅ Done (2026-10-01) |
-| 2 | Public site port (design 1:1) + contact form + static pages | ⏳ Next |
-| 3 | Auth (JWT) + admin shell + users + inquiries inbox | ☐ |
+| 2 | Public site port (design 1:1) + contact form + static pages | ✅ Done (2026-10-01) |
+| 3 | Auth (JWT) + admin shell + users + inquiries inbox | ⏳ Next |
 | 4 | CMS for every page/collection + SEO manager + uploads + audit log | ☐ |
 | 5 | SEO polish, performance, security hardening, deploy (Vercel + VPS) | ☐ |
 
@@ -68,6 +68,17 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 | Display ordinals ("01", "02") | Derived from position at render time, never stored. | Reordering can't produce duplicate numbers. |
 | UI labels vs content | Section eyebrows/titles/intros/CTA labels → DB. Field labels ("Established", "min read"), validation messages, aria-labels → code. | Labels are interface, not content. |
 | Language | JavaScript + JSDoc, matching the existing project. | Client's stack. |
+| Build needs the DB | Pages prerender at `next build` from MongoDB, so `MONGODB_URI` must be set in the build environment too (Vercel: Project → Environment Variables, all environments). | Static HTML with live content; no request ever waits on Mongo. |
+| Cache lifetime | Every public read is `"use cache"` + `cacheTag(TAGS.*)` + `cacheLife("hours")` (`server/services/_cache.js`). Tags are the real invalidation (Phase 4 calls `updateTag`); the hourly revalidate is a safety net for edits made outside the dashboard. | |
+| Hero carousel | Swiper **core** attached in `useEffect` to server-rendered markup, not `swiper/react`. | `swiper/react` reads the clock during render, which Cache Components rejects in a prerender; a `<Suspense>` hole would delay the LCP image. Same DOM, so the hero keyframes never replay. |
+| Scroll reveals | `components/motion/Reveal.js` (`<Stagger>` / `<Rise>`), client islands around server-rendered markup. | Sections stay Server Components; motion values identical to the React site. |
+| News reader | Card → `/news/[slug]`. From `/news` it opens in the dialog via an intercepting route (`news/@modal/(.)[slug]`); a direct visit, refresh or crawler gets the full page `news/[slug]`. Home "latest news" links open the full page. | Same modal UX as React, plus a real URL per release for SEO and sharing. |
+| Ventures | Listed **with** `detail` (6 small records) so the dialog opens instantly. | A second round trip per click buys nothing at this size. |
+| Unknown slugs | `/businesses/x` and `/news/x` render the not-found page with `noindex` but HTTP **200** (soft 404). | Cache Components streams the static shell before the slug is checked. A real 404 needs a check in `proxy.js` — Phase 5. Unmatched paths (`/anything`) already return a real 404. |
+| Contact `?type=` | Only the form reads search params, inside `<Suspense>`; the fallback is the same form with no desk selected. | The rest of /contact stays fully static. |
+| Contact mail | Save inquiry → `after()` sends desk notice (to the desk's server-only `routeTo`, else `CONTACT_FALLBACK_INBOX`, Reply-To = visitor) + acknowledgement (echoes none of the visitor's text: no spam relay). Failures are written to `inquiry.mail.error`. | An SMTP outage never loses a lead. |
+| Rate limit / IP | 5 inquiries / 10 min per IP hash. IP from `x-forwarded-for` (first hop), hashed with `IP_HASH_SALT`; raw IP never stored. **VPS:** Nginx must *overwrite* the header: `proxy_set_header X-Forwarded-For $remote_addr;`. | |
+| Legal pages | `/privacy`, `/terms` are static files with plain-language copy describing what the site actually does. **Legal counsel must review before launch.** | Client: not CMS-managed. |
 
 ---
 
@@ -75,20 +86,40 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 
 ```
 app/                       Next.js routes
-  (site)/                  public pages            (Phase 2)
+  layout.js                fonts (next/font), root generateMetadata (SiteSettings.seo)
+  not-found.js             unmatched URLs — 404 inside the site chrome
+  global-error.js          last-resort error page (root layout failed)
+  (site)/                  public pages (Phase 2)
+    layout.js              SiteShell: skip link, Navbar, <main>, Footer
+    page.js                home
+    about/ businesses/ businesses/[slug]/ sustainability/ innovation/ contact/
+    news/                  layout.js (@modal slot), page.js, [slug]/ (full page),
+                           @modal/(.)[slug]/ (dialog), @modal/default.js
+    privacy/ terms/        static legal pages
+    not-found.js error.js loading.js
   admin/                   dashboard               (Phase 3–4)
   uploads/[...path]/       serves /uploads files   (Phase 4)
   globals.css              design tokens (ported 1:1)
-  layout.js                fonts (next/font), root metadata
-components/                UI components            (Phase 2+)
+components/
+  layout/                  SiteShell, Navbar (client), Footer
+  motion/Reveal.js         <Stagger>/<Rise> scroll reveals (client)
+  ui/                      ArrowLink, Plate (next/image frame), PageHero, SectionHeading
+  dialog/Dialog.js         the one modal shell (client)
+  home/ businesses/ innovation/ news/ contact/ legal/   page sections
+  NotFoundView.js ErrorView.js
+lib/                       format.js (dates, ordinals, labels, maps URLs), cn.js
 server/                    server-only code — never import from a Client Component
   env.js                   Zod-validated env, grouped by feature
   db/connect.js            cached Mongoose connection
   auth/password.js         argon2id hash/verify
   models/                  Mongoose models (+ index.js barrel)
-  services/                business logic / data access   (Phase 2+)
-  validators/              Zod input schemas               (Phase 2+)
-  actions/                 Server Actions (thin: auth → validate → service) (Phase 2+)
+  services/                business logic / data access
+    _cache.js              TAGS + CONTENT_LIFE + toPlain()  ← Phase 4 updateTag() uses TAGS
+    content.js             cached public reads (pages, businesses, news, leaders…)
+    seo.js                 buildRootMetadata / buildPageMetadata
+    inquiry.js mail.js rate-limit.js request.js
+  validators/              Zod input schemas (contact.js)
+  actions/                 Server Actions (contact.js)
 scripts/seed/              seed script + data/ (content snapshot of warrick-frontend)
 uploads/                   admin uploads (gitignored)
 public/                    logo.png, asma.jpeg, warrick.jpeg
@@ -146,7 +177,7 @@ no `//host`); images must be a local path or `https://`.
 
 ## 7. Environment & commands
 
-Copy `.env.example` → `.env.local` and fill in `MONGODB_URI`, `SMTP_*`, `JWT_SECRET`.
+Copy `.env.example` → `.env.local` and fill in `MONGODB_URI`, `SMTP_*`, `IP_HASH_SALT`, `JWT_SECRET`.
 
 | Command | What it does |
 |---|---|
@@ -208,6 +239,7 @@ These are seeded exactly as the React site rendered them. Fix from the dashboard
   category reads "Technology" (its real category) instead of the "E-Commerce"
   that was hardcoded on the old home page.
 - **Report PDFs** (`/reports/*.pdf`) don't exist, so the links 404 until the files are uploaded.
+- **Footer hubs order** now follows the Office records (London · Dubai · Singapore · Dhaka); the React footer had its own hard-coded list (… Dhaka · Singapore). Reorder offices from the dashboard if needed — the contact page uses the same order.
 - All Unsplash photos and most copy/figures are placeholders, and so is the
   Executive/Board roster except Warrick and Asma.
 
@@ -220,3 +252,10 @@ These are seeded exactly as the React site rendered them. Fix from the dashboard
 **Changed:** `package.json`, `next.config.mjs`, `app/globals.css`, `app/layout.js`, `.gitignore`, `eslint.config.mjs`, `CLAUDE.md`.
 **Verified:** all 54 seed documents pass schema validation with no field dropped; unsafe links/images, bad slugs and non-E.164 phones are rejected; `next build` and eslint are clean.
 **Not verified here:** the seed's write path against a live database (no MongoDB available in the build sandbox). First real run happens on the developer machine.
+
+### Phase 2 — 2026-10-01
+**Added:** `app/(site)/**` (home, about, businesses + `[slug]`, sustainability, innovation, news + `[slug]` + modal, contact, privacy, terms, not-found, error, loading), `app/not-found.js`, `app/global-error.js`, `components/**`, `lib/`, `server/services/*`, `server/validators/contact.js`, `server/actions/contact.js`, dependency `nodemailer`.
+**Changed:** `app/layout.js` (generateMetadata), `next.config.mjs` (`cacheComponents: true`), `server/env.js` (+`security` group), `.env.example` (+`IP_HASH_SALT`), `app/globals.css` (+`loading-rule` keyframes). **Removed:** `app/page.js` (moved to `app/(site)/page.js`).
+**Verified (against a seeded database):** `next build` prerenders all 35 routes as static; eslint and an esbuild syntax pass are clean. Screenshot diff vs warrick-frontend at 1440px and 390px on all 9 pages: identical except the removed TopBar (36px) and the removed footer links. No console or hydration errors. Hero (autoplay, arrows, entity strip, rewind), Businesses dropdown, mobile drawer, news filter, news dialog (open/close/reopen, browser back/forward), direct article URL, venture dialog, `/contact?type=media` preselect, 404s. Contact: client + server validation, inquiry saved, rate limit trips on the 6th submit, desk mail + acknowledgement delivered to a test SMTP server, SMTP failure recorded on the inquiry.
+**Not verified here:** Google Fonts download at build (sandbox has no access; fonts were swapped for local copies only for testing) and real Unsplash images (stubbed).
+

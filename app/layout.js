@@ -1,4 +1,5 @@
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
+import { buildRootMetadata } from "@/server/services/seo";
 import "./globals.css";
 
 /* Self-hosted at build time by next/font: no request to Google at runtime and
@@ -16,12 +17,11 @@ const grotesk = Space_Grotesk({
     display: "swap",
 });
 
-/* Phase 2 replaces this with generateMetadata() reading the SEO collection. */
-export const metadata = {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-    title: "Warrick Group",
-    icons: { icon: "/logo.png" },
-};
+/* Site-wide defaults (title template, description, OG, verification) from
+   SiteSettings.seo. Each page refines them from its SeoSetting record. */
+export function generateMetadata() {
+    return buildRootMetadata();
+}
 
 export default function RootLayout({ children }) {
     return (

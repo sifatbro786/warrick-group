@@ -42,6 +42,12 @@ const schemas = {
         UPLOAD_MAX_MB: z.coerce.number().positive().max(50).default(8),
     }),
 
+    security: z.object({
+        /* Salt for hashing visitor IPs (rate limiting, inquiry records).
+           Raw IPs are never stored. */
+        IP_HASH_SALT: z.string().default(""),
+    }),
+
     site: z.object({
         NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
     }),
@@ -68,4 +74,5 @@ export const dbEnv = () => load("db");
 export const authEnv = () => load("auth");
 export const mailEnv = () => load("mail");
 export const uploadEnv = () => load("uploads");
+export const securityEnv = () => load("security");
 export const siteEnv = () => load("site");
