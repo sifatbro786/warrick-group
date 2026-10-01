@@ -1,26 +1,236 @@
+/* ==========================================================================
+   WARRICK GROUP — Global Stylesheet
+   Tailwind CSS v4 · ported 1:1 from warrick-frontend/src/index.css
+   --------------------------------------------------------------------------
+   Design language:
+   · Structure comes from white space and hairlines, never from boxes.
+   · Eyebrows are typography only. No pills, no tinted backgrounds, no left
+     borders. Size, tracking, weight and margin carry the hierarchy.
+   · Gold is an accent, not a surface. It appears as a rule, a glyph or a
+     single word, never as a fill behind text.
+
+   Changes from the React version:
+   · Fonts are self-hosted by next/font (app/layout.js) instead of a render-
+     blocking Google Fonts @import. The families are exposed as
+     --font-jakarta / --font-grotesk and mapped below.
+   · --header-height no longer includes the 2.25rem TopBar (removed).
+   ========================================================================== */
+
 @import "tailwindcss";
 
-:root {
-    --background: #ffffff;
-    --foreground: #171717;
-}
-
+/* --------------------------------------------------------------------------
+   1. FONT TOKENS — variables come from next/font, so they are runtime values
+   and must sit in an `inline` theme block.
+   -------------------------------------------------------------------------- */
 @theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
+    --font-sans:
+        var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif;
+    --font-display: var(--font-grotesk), var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
+/* --------------------------------------------------------------------------
+   2. DESIGN TOKENS (@theme)
+   -------------------------------------------------------------------------- */
+@theme {
+    /* Signature wordmark. A serif sets the founder's signature apart from the
+     two sans faces without pulling in a third webfont. */
+    --font-signature: ui-serif, Georgia, "Times New Roman", serif;
+
+    /* ---- Surfaces --------------------------------------------------------- */
+    --color-surface: #ffffff; /* Pure white — cards, modals, navbar */
+    --color-surface-soft: #fafafc; /* Atmosphere white — page background */
+    --color-surface-card: #f4f4f8; /* Subtle section / card wash */
+
+    /* ---- Brand · Royal Purple -------------------------------------------- */
+    --color-royal-deep: #1f1130; /* Cinematic overlays, hero wash */
+    --color-royal: #2e1a47; /* Primary brand purple */
+    --color-royal-light: #4a2e73; /* Hover states, accents */
+    --color-royal-dark: #180d28; /* Deep grounds, vignettes, hero wash */
+    /* Darkest surface, reserved for the footer so it terminates the page
+     instead of extending the royal band above it. */
+    --color-royal-night: #0b0810;
+
+    /* ---- Brand · Muted Corporate Gold ------------------------------------ */
+    --color-gold: #c5a059; /* Brand gold — dark grounds + decoration */
+    --color-gold-light: #e2c98f; /* Highlight on dark grounds */
+    --color-gold-dark: #8a6d34; /* Accessible gold for text on light */
+
+    /* ---- Text ------------------------------------------------------------- */
+    --color-ink: #18181b; /* Rich charcoal, never pure black */
+    --color-ink-muted: #71717a; /* Muted slate — captions, meta, detail */
+
+    /* ---- Structure -------------------------------------------------------- */
+    --color-line: #e4e4e7; /* The hairline. Dividers and rules. */
+
+    /* ---- Elevation & Motion ----------------------------------------------- */
+    --shadow-premium: 0 10px 40px -12px rgb(31 17 48 / 0.16);
+    --shadow-premium-lg: 0 24px 70px -20px rgb(31 17 48 / 0.22);
+    --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Footer status heartbeat: a slow expanding ring behind a solid dot. */
+    --animate-status-pulse: status-pulse 2.8s var(--ease-premium) infinite;
+
+    @keyframes status-pulse {
+        0% {
+            transform: scale(1);
+            opacity: 0.5;
+        }
+        70%,
+        100% {
+            transform: scale(2.6);
+            opacity: 0;
+        }
+    }
+
+    /* ---- Hero carousel motion --------------------------------------------- */
+    --animate-hero-rise: hero-rise 0.85s var(--ease-premium) both;
+    --animate-hero-pan: hero-pan 14s linear both;
+
+    @keyframes hero-rise {
+        from {
+            opacity: 0;
+            transform: translateY(1.5rem);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes hero-pan {
+        from {
+            transform: scale(1.08);
+        }
+        to {
+            transform: scale(1);
+        }
     }
 }
 
-body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+/* --------------------------------------------------------------------------
+   3. BASE LAYER — global element defaults
+   -------------------------------------------------------------------------- */
+@layer base {
+    :root {
+        --header-height: 4.5rem; /* navbar only — TopBar removed */
+    }
+
+    @media (min-width: 64rem) {
+        :root {
+            --header-height: 5.75rem;
+        }
+    }
+
+    html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 6rem;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        background-color: var(--color-surface-soft);
+        color: var(--color-ink);
+        font-family: var(--font-sans);
+        font-feature-settings: "kern", "liga", "calt";
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+    }
+
+    p {
+        text-wrap: pretty;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-gold-dark);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            animation-delay: -1ms !important;
+            transition-duration: 0.01ms !important;
+            transition-delay: 0s !important;
+        }
+    }
+}
+
+/* --------------------------------------------------------------------------
+   4. TEXT SELECTION — Deep royal ground, gold text
+   -------------------------------------------------------------------------- */
+::selection {
+    background-color: var(--color-royal);
+    color: var(--color-gold-light);
+    text-shadow: none;
+}
+
+/* --------------------------------------------------------------------------
+   5. CUSTOM SCROLLBAR
+   -------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: var(--color-surface-soft);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-gold);
+    border-radius: 9999px;
+    border: 3px solid var(--color-surface-soft);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-royal);
+}
+
+::-webkit-scrollbar-corner {
+    background-color: var(--color-surface-soft);
+}
+
+@supports (scrollbar-color: auto) {
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-gold) var(--color-surface-soft);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   6. CUSTOM UTILITIES (@utility)
+   -------------------------------------------------------------------------- */
+
+/* Eyebrow: typography only. No left border, no pill box. */
+@utility eyebrow {
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+}
+
+/* Hairline rule used as a section marker or metric underline */
+@utility rule-gold {
+    display: block;
+    height: 1px;
+    background-color: var(--color-gold);
 }

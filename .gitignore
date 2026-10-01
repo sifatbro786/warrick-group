@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# keep the env template in git
+!.env.example
+
+# admin uploads (served by /uploads route, never committed)
+/uploads/*
+!/uploads/.gitkeep
