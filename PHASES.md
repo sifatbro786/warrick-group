@@ -228,7 +228,7 @@ Copy `.env.example` → `.env.local` and fill in `MONGODB_URI`, `SMTP_*`, `IP_HA
 - Design tokens ported to `app/globals.css`; fonts self-hosted via `next/font`.
 - Zod env validation, cached DB connection, all models, idempotent seed.
 
-### Phase 2 — Public site port
+### Phase 2 — Public site port ✅
 - Root layout: Navbar + Footer (no TopBar), skip link, `generateMetadata` from `SeoSetting`.
 - Pages: `/`, `/about`, `/businesses`, `/businesses/[slug]`, `/sustainability`, `/innovation`, `/news` (+ `/news/[slug]` via intercepting route so the modal UX stays), `/contact`, static `/privacy`, `/terms`.
 - `not-found`, `error`, `global-error`, `loading`.
