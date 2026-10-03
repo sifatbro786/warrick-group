@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { EASE } from "@/components/motion/Reveal";
 
 const FOCUSABLE = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
@@ -97,7 +97,7 @@ export default function Dialog({
             onKeyDown={handleKeyDown}
         >
             {/* ---------------- Backdrop ---------------- */}
-            <motion.button
+            <m.button
                 type="button"
                 aria-label={closeLabel}
                 tabIndex={-1}
@@ -110,7 +110,7 @@ export default function Dialog({
             />
 
             {/* ---------------- Panel ---------------- */}
-            <motion.div
+            <m.div
                 ref={panelRef}
                 role="dialog"
                 aria-modal="true"
@@ -141,7 +141,7 @@ export default function Dialog({
 
                 {/* The dialog's own scroll container. */}
                 <div className="flex-1 overflow-y-auto overscroll-contain">{children}</div>
-            </motion.div>
+            </m.div>
         </div>,
         document.body,
     );

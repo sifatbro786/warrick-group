@@ -31,7 +31,7 @@ export default async function SustainabilityPage() {
                 titleClass="max-w-[14ch]"
             >
                 {position.length ? (
-                    <Rise as="dl" className="mt-20 grid grid-cols-2 gap-x-8 gap-y-12 lg:mt-28 lg:grid-cols-4 lg:gap-x-12">
+                    <Rise as="dl" order={3} className="mt-20 grid grid-cols-2 gap-x-8 gap-y-12 lg:mt-28 lg:grid-cols-4 lg:gap-x-12">
                         {position.map((item, index) => (
                             <div key={itemKey(item, index)} className="border-t border-white/12 pt-6">
                                 <dt className="eyebrow text-white/45">{item.label}</dt>

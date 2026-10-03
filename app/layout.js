@@ -26,9 +26,13 @@ export function generateMetadata() {
 export default function RootLayout({ children }) {
     /* data-scroll-behavior: globals.css sets smooth scrolling for in-page
        anchors; this tells Next to switch it off during route changes. */
+    /* suppressHydrationWarning on <body>: browser extensions (ColorZilla's
+       cz-shortcut-listen, Grammarly, password managers…) add attributes to
+       <body> before React hydrates. One level deep only — it does not hide
+       mismatches in the page content. */
     return (
         <html lang="en" className={`${jakarta.variable} ${grotesk.variable}`} data-scroll-behavior="smooth">
-            <body>{children}</body>
+            <body suppressHydrationWarning>{children}</body>
         </html>
     );
 }

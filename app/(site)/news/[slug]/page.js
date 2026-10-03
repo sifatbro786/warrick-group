@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ArticleBody from "@/components/news/ArticleBody";
 import { getArticleBySlug, getPage, listArticles } from "@/server/services/content";
-import { buildPageMetadata } from "@/server/services/seo";
+import { buildPageMetadata, getRouteSeo } from "@/server/services/seo";
+import { breadcrumb, newsArticle } from "@/server/services/structured-data";
+import JsonLd from "@/components/seo/JsonLd";
 
 /* Every published release is prerendered; new ones render on first visit.
    The placeholder keeps an empty newsroom from failing the build (404s). */
@@ -34,11 +36,21 @@ export async function generateMetadata({ params }) {
    ========================================================================== */
 export default async function ArticlePage({ params }) {
     const { slug } = await params;
-    const [article, page] = await Promise.all([getArticleBySlug(slug), getPage("news")]);
+    const [article, page, section] = await Promise.all([getArticleBySlug(slug), getPage("news"), getRouteSeo("news")]);
     if (!article) notFound();
 
     return (
         <section className="bg-surface-soft">
+            <JsonLd
+                data={[
+                    newsArticle(article),
+                    breadcrumb([
+                        { name: "Home", path: "/" },
+                        { name: section?.label || "News", path: "/news" },
+                        { name: article.title, path: `/news/${article.slug}` },
+                    ]),
+                ]}
+            />
             <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:py-24">
                 <Link
                     href="/news"

@@ -38,13 +38,13 @@ export default async function AboutPage() {
                 eyebrow={hero.eyebrow}
                 title={hero.title}
                 lead={hero.lead}
-                onMount={false}
                 titleClass="max-w-[18ch]"
                 leadClass="max-w-[52ch]"
             >
                 {hero.meta?.length ? (
                     <Rise
                         as="dl"
+                        order={3}
                         className="mt-20 grid grid-cols-2 gap-x-8 gap-y-10 lg:mt-28 lg:grid-cols-4 lg:gap-x-12"
                     >
                         {hero.meta.map((item, index) => (

@@ -25,12 +25,13 @@ export default function NewsBrowser({ header, categories, articles, emptyState }
         <>
             {/* ========================= HEADER AND FILTER ========================= */}
             <section aria-labelledby="newsroom-heading" className="bg-surface-soft">
-                <Stagger onMount className="mx-auto max-w-360 px-5 pt-20 pb-0 sm:px-6 lg:px-10 lg:pt-32">
+                <Stagger css className="mx-auto max-w-360 px-5 pt-20 pb-0 sm:px-6 lg:px-10 lg:pt-32">
                     {header}
 
                     {/* Text only. The active state is a hairline sitting on the
                         strip's own bottom rule, so nothing gains a background. */}
                     <Rise
+                        order={3}
                         role="group"
                         aria-label="Filter releases by category"
                         className="mt-16 flex flex-wrap items-end gap-x-10 gap-y-4 border-b border-line lg:mt-24"

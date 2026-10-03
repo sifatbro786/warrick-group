@@ -133,7 +133,10 @@ export const SITE_SECTIONS = {
             }),
             defaultTitle: text("Default title", { max: 70, counter: [30, 60] }),
             defaultDescription: textarea("Default description", { max: 170, rows: 2, counter: [70, 160] }),
-            defaultOgImage: file("Default social image", { accept: "image", hint: "1200×630. Used when a page has none of its own." }),
+            defaultOgImage: file("Default social image", {
+                accept: "image",
+                hint: "1200×630. Public pages get an automatic title card; this is only the last fallback (e.g. error pages).",
+            }),
             twitterHandle: text("X / Twitter handle", {
                 max: 30,
                 span: "third",
@@ -161,7 +164,7 @@ export const ROUTE_SEO_FIELDS = {
     title: text("SEO title", { max: 70, counter: [30, 60], hint: "The site name is added after it (except on Home)." }),
     description: textarea("Meta description", { max: 170, rows: 3, counter: [70, 160] }),
     keywords: lines("Keywords", { max: 15, itemMax: 60, rows: 3, hint: "One per line. Search engines mostly ignore these; keep them few." }),
-    ogImage: file("Social share image", { accept: "image", hint: "1200×630. Empty → the site default." }),
+    ogImage: file("Social share image", { accept: "image", hint: "1200×630. Empty → an automatic card with this page's title." }),
     noindex: toggle("Hide from search engines", { hint: "Adds noindex and leaves the page out of the sitemap." }),
     sitemap: group("Sitemap", {
         include: toggle("Include in sitemap.xml"),

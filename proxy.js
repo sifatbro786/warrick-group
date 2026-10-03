@@ -1,5 +1,44 @@
 import { NextResponse } from "next/server";
 import { sessionCookie, shouldRefresh, signSession, verifySessionToken } from "@/server/auth/jwt";
+import { isKnownSlug } from "@/server/routing/known-slugs";
+import { SLUG } from "@/server/validators/patterns";
+
+/**
+ * Two jobs (Next 16 `proxy`, formerly middleware):
+ *   /admin/**                  → the session gate below
+ *   /businesses/<slug>, /news/<slug> → a real 404 for slugs that don't exist
+ */
+export async function proxy(request) {
+    const detail = request.nextUrl.pathname.match(DETAIL);
+    if (detail) return detailGate(request, detail[1], detail[2]);
+    return adminGate(request);
+}
+
+/* ---- Detail pages: real 404 ---------------------------------------------- */
+
+const DETAIL = /^\/(businesses|news)\/([^/]+)\/?$/;
+
+/**
+ * Published companies and releases are static pages; anything else would
+ * otherwise get the not-found view with status 200 (a "soft 404" search
+ * engines dislike). Unknown slugs are rewritten to a path no route matches,
+ * so Next renders the site's not-found page with a real 404 status.
+ */
+async function detailGate(request, kind, rawSlug) {
+    let slug;
+    try {
+        slug = decodeURIComponent(rawSlug);
+    } catch {
+        slug = "";
+    }
+    if (SLUG.test(slug) && (await isKnownSlug(kind, slug))) return NextResponse.next();
+
+    const response = NextResponse.rewrite(new URL("/__not-found", request.url));
+    response.headers.set("X-Robots-Tag", "noindex");
+    return response;
+}
+
+/* ---- /admin gate ----------------------------------------------------------- */
 
 /**
  * Admin gate (Next 16 `proxy`, formerly middleware).
@@ -13,7 +52,7 @@ import { sessionCookie, shouldRefresh, signSession, verifySessionToken } from "@
  * Also slides the session: a token past half-life is re-signed with the same
  * tokenVersion and login time (capped at 7 days from login).
  */
-export async function proxy(request) {
+async function adminGate(request) {
     const { pathname, search } = request.nextUrl;
     const { name, options } = sessionCookie();
     const session = await verifySessionToken(request.cookies.get(name)?.value);
@@ -48,5 +87,5 @@ export async function proxy(request) {
 }
 
 export const config = {
-    matcher: ["/admin", "/admin/:path*"],
+    matcher: ["/admin", "/admin/:path*", "/businesses/:slug", "/news/:slug"],
 };

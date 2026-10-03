@@ -7,7 +7,9 @@ import SectionHeading, { SplitHeading } from "@/components/ui/SectionHeading";
 import { Rise, Stagger } from "@/components/motion/Reveal";
 import { pad, itemKey } from "@/lib/format";
 import { getBusinessBySlug, getPage, listBusinesses } from "@/server/services/content";
-import { buildPageMetadata } from "@/server/services/seo";
+import { buildPageMetadata, getRouteSeo } from "@/server/services/seo";
+import { breadcrumb, companyPage } from "@/server/services/structured-data";
+import JsonLd from "@/components/seo/JsonLd";
 
 /* Cache Components needs at least one sample param at build. Every published
    company is prerendered; one added later renders on first visit and is then
@@ -42,10 +44,11 @@ export async function generateMetadata({ params }) {
    ========================================================================== */
 export default async function BusinessDetailPage({ params }) {
     const { slug } = await params;
-    const [entity, all, page] = await Promise.all([
+    const [entity, all, page, section] = await Promise.all([
         getBusinessBySlug(slug),
         listBusinesses(),
         getPage("businesses"),
+        getRouteSeo("businesses"),
     ]);
     if (!entity) notFound();
 
@@ -56,6 +59,16 @@ export default async function BusinessDetailPage({ params }) {
 
     return (
         <>
+            <JsonLd
+                data={[
+                    companyPage(entity),
+                    breadcrumb([
+                        { name: "Home", path: "/" },
+                        { name: section?.label || "Our Businesses", path: "/businesses" },
+                        { name: entity.name, path: `/businesses/${entity.slug}` },
+                    ]),
+                ]}
+            />
             {/* =============================== HERO =============================== */}
             <PageHero
                 id="entity-heading"
@@ -84,12 +97,12 @@ export default async function BusinessDetailPage({ params }) {
                 }
             >
                 {entity.website ? (
-                    <Rise className="mt-12">
+                    <Rise order={4} className="mt-12">
                         <ExternalSiteLink website={entity.website} entityName={entity.name} tone="dark" />
                     </Rise>
                 ) : null}
 
-                <Rise as="dl" className="mt-20 grid grid-cols-2 gap-x-8 gap-y-10 lg:mt-24 lg:grid-cols-4 lg:gap-x-12">
+                <Rise as="dl" order={entity.website ? 5 : 4} className="mt-20 grid grid-cols-2 gap-x-8 gap-y-10 lg:mt-24 lg:grid-cols-4 lg:gap-x-12">
                     <div className="border-t border-white/12 pt-6">
                         <dt className="eyebrow text-white/45">Established</dt>
                         <dd className="mt-4 font-display text-[clamp(1.25rem,1.8vw,1.75rem)] leading-none font-bold tracking-tight text-white tabular-nums">

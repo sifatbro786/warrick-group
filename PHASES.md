@@ -18,7 +18,7 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 | **This project** | `E:\Works\Warrick\warrick-group` — Next.js **16.3.8** App Router, React 19.2, **JavaScript** (no TS), Tailwind v4, MongoDB + Mongoose 9, Node **24** |
 | Backend | Inside Next.js (Server Components, Server Actions, Route Handlers). No separate Express server. |
 | Mail | Nodemailer over SMTP (contact form → desk mailbox + acknowledgement to sender) |
-| Hosting | Vercel first → later self-hosted on a Hostinger/Namecheap VPS (PM2 + Nginx) |
+| Hosting | Vercel (see §11). A VPS move is possible later; no VPS guide is maintained here. |
 | Admin | `/admin` dashboard with sidebar. Roles: `super_admin`, `admin` |
 
 ### Non-negotiables (from the client)
@@ -49,7 +49,7 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 | 2 | Public site port (design 1:1) + contact form + static pages | ✅ Done (2026-10-01) |
 | 3 | Auth (JWT) + admin shell + users + inquiries inbox | ✅ Done (2026-10-03) |
 | 4 | CMS for every page/collection + SEO manager + uploads + audit log | ✅ Done (2026-10-03) |
-| 5 | SEO polish, performance, security hardening, deploy (Vercel + VPS) | ⏳ Next |
+| 5 | SEO polish, performance, security hardening, Vercel deploy | ✅ Done (2026-10-03) |
 
 ---
 
@@ -74,7 +74,7 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 | Scroll reveals | `components/motion/Reveal.js` (`<Stagger>` / `<Rise>`), client islands around server-rendered markup. | Sections stay Server Components; motion values identical to the React site. |
 | News reader | Card → `/news/[slug]`. From `/news` it opens in the dialog via an intercepting route (`news/@modal/(.)[slug]`); a direct visit, refresh or crawler gets the full page `news/[slug]`. Home "latest news" links open the full page. | Same modal UX as React, plus a real URL per release for SEO and sharing. |
 | Ventures | Listed **with** `detail` (6 small records) so the dialog opens instantly. | A second round trip per click buys nothing at this size. |
-| Unknown slugs | `/businesses/x` and `/news/x` render the not-found page with `noindex` but HTTP **200** (soft 404). | Cache Components streams the static shell before the slug is checked. A real 404 needs a check in `proxy.js` — Phase 5. Unmatched paths (`/anything`) already return a real 404. |
+| Unknown slugs | `proxy.js` checks `/businesses/<slug>` and `/news/<slug>` against an in-memory set of published slugs (`server/routing/known-slugs.js`, 60 s TTL, refreshed early on a miss, fails open on DB error) and rewrites unknown ones to the not-found page with HTTP **404** + `noindex`. | Cache Components streams the static shell before the page can check the slug, so the check has to happen before rendering. A new record is reachable within ~3 s. |
 | Contact `?type=` | Only the form reads search params, inside `<Suspense>`; the fallback is the same form with no desk selected. | The rest of /contact stays fully static. |
 | Contact mail | Save inquiry → `after()` sends desk notice (to the desk's server-only `routeTo`, else `CONTACT_FALLBACK_INBOX`, Reply-To = visitor) + acknowledgement (echoes none of the visitor's text: no spam relay). Failures are written to `inquiry.mail.error`. | An SMTP outage never loses a lead. |
 | Rate limit / IP | 5 inquiries / 10 min per IP hash. IP from `x-forwarded-for` (first hop), hashed with `IP_HASH_SALT`; raw IP never stored. **VPS:** Nginx must *overwrite* the header: `proxy_set_header X-Forwarded-For $remote_addr;`. | |
@@ -104,6 +104,12 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 | Instant-navigation check | Every page under `app/admin/(panel)/` exports `instant = false`. `instant` is per segment: the `false` on `app/admin/layout.js` does not reach child pages, and Next 16's dev-only check would report each session-reading page as "uncached data … outside <Suspense>". Public pages keep the default (validated). | Dashboard pages are per-request by design. |
 | List keys | Public lists use `key={itemKey(item, index)}` (`lib/format.js`): the string `_id`, else the position. On a client component, put `key` **before** any `{...spread}`: after it, JSX compiles to `createElement` and React warns that the element's children are an unkeyed list. | Found via a dev warning in FounderSection. |
 | Smooth scroll | `<html data-scroll-behavior="smooth">` so Next turns off the `scroll-behavior: smooth` from globals.css during route changes. | Next 16 dev notice. |
+| Sitemap / robots | `app/sitemap.js` from the DB (routes with "Include in sitemap" and not noindex, published businesses and articles). `app/robots.js` disallows everything on Vercel preview deployments or when `ROBOTS_DISALLOW_ALL=true`; `/admin` and `/api/` always disallowed. | Follows publish/hide immediately (same cache tags). |
+| Social images | `/og/<route key>` generates a 1200×630 title card (`next/og`, fonts in `assets/og/`, cached for days, tagged `seo`/`site`). Priority: page override → route's image → generated card → site default. Articles/businesses use their cover image. | Every page shares well with zero admin work. |
+| Structured data | JSON-LD via `components/seo/JsonLd.js` + `server/services/structured-data.js`: Organization + WebSite on every page (SiteShell), BreadcrumbList + NewsArticle / Organization on detail pages. `<` is escaped. | |
+| CSP | Header-based, no nonce (`next.config.mjs`): `script-src 'self' 'unsafe-inline'`, `img-src 'self' data: blob: https:`, `frame-src` Google Maps, `frame-ancestors 'none'`, `object-src 'none'`, `upgrade-insecure-requests` on https. `/uploads` keeps its own stricter CSP. Plus COOP `same-origin`. | A nonce forces every page to render per request, which would throw away static rendering. |
+| Motion bundle | `LazyMotion` + `m` (`components/motion/MotionProvider.js`, `strict`). Heroes use `<Stagger css>`: the `hero-rise` CSS keyframe, so the h1 paints before JavaScript loads (LCP). Scroll reveals stay on framer. | Same look; hero LCP no longer waits for hydration. |
+| Public loading.js | Removed. React 19.2 painted its fallback first and then swapped the page in → CLS 0.31. Pages are static, so there is nothing to wait for. | CLS 0. |
 | Atlas SRV DNS | Optional `MONGODB_DNS_SERVERS=8.8.8.8,1.1.1.1` → `dns.setServers()` before connecting. Fixes `querySrv ECONNREFUSED` when the Windows/ISP resolver refuses SRV lookups for `mongodb+srv://`. | Hit on the developer machine. |
 
 ---
@@ -122,7 +128,8 @@ app/                       Next.js routes
     news/                  layout.js (@modal slot), page.js, [slug]/ (full page),
                            @modal/(.)[slug]/ (dialog), @modal/default.js
     privacy/ terms/        static legal pages
-    not-found.js error.js loading.js
+    not-found.js error.js   (no loading.js: see §3 "Public loading.js")
+    sitemap.js robots.js     (app root) + og/[key]/route.js (generated social cards)
   admin/                   dashboard
     layout.js              noindex metadata, Toaster, admin.css, instant = false
     login/                 sign-in (brand panel + form; DAL gate in Suspense)
@@ -285,12 +292,11 @@ Copy `.env.example` → `.env.local` and fill in `MONGODB_URI`, `SMTP_*`, `IP_HA
 - Local uploads (type/size validation, random filenames, `/uploads` route), image picker.
 - `updateTag()` on save, audit log.
 
-### Phase 5 — Hardening & deploy
-- `sitemap.js`, `robots.js`, JSON-LD (Organization, WebSite, BreadcrumbList, NewsArticle), dynamic OG images.
-- Lighthouse ≥ 95, bundle analysis, `LazyMotion`, LCP preload; responsive QA at 360/768/1024/1440.
-- CSP, final header review, dependency audit. CSP must allow `img-src https:` (SmartImage renders pasted remote images unoptimised) and the admin's `/uploads` thumbnails.
-- VPS: Nginx serves `/uploads` directly (snippet below) and `client_max_body_size` ≥ UPLOAD_MAX_MB for `/api/admin/media`.
-- Vercel deploy guide; create vercel.json
+### Phase 5 — Hardening & deploy ✅
+- `sitemap.js`, `robots.js`, JSON-LD, generated OG cards, real 404 for unknown slugs.
+- `LazyMotion`, CSS hero entrances, `loading.js` removed (CLS).
+- CSP + header review, `npm audit` (0 vulnerabilities in production deps).
+- `vercel.json` + Vercel deploy guide (§11). VPS guide skipped at the client's request.
 
 ---
 
@@ -357,6 +363,25 @@ location /uploads/ {
 }
 ```
 
+### Phase 5 — 2026-10-03
+**Added:** `app/sitemap.js`, `app/robots.js`, `app/og/[key]/route.js`, `assets/og/` (OFL fonts), `components/seo/JsonLd.js`, `server/services/structured-data.js`, `server/routing/known-slugs.js`, `components/motion/MotionProvider.js`, `vercel.json`.
+**Changed:** `next.config.mjs` (CSP, COOP, Permissions-Policy), `proxy.js` (slug 404 gate + admin gate), `server/services/seo.js` (OG cards, sitemap entries, `absoluteUrl`), `components/layout/SiteShell.js` (MotionProvider + site JSON-LD), `components/motion/Reveal.js` (`m`, CSS mode), `components/dialog/Dialog.js` (`m`), `components/ui/PageHero.js` + contact/news/legal heroes (`<Stagger css>`), news/business detail pages (JSON-LD), `server/validators/cms/site.js` (hints), `.env.example` (`ROBOTS_DISALLOW_ALL`). **Removed:** `app/(site)/loading.js`.
+**Verified (`next build` + `next start`):** build 0 warnings, eslint 0, check:cms 68/68, esbuild clean, `npm audit --omit=dev` 0. robots/sitemap correct and follow publish/hide; `/og/*` 1200×630, unknown key 404; `/businesses/nope`, `/news/nope` → 404 in site chrome, new record → 200; JSON-LD valid; no CSP violations on public or admin pages. Lighthouse mobile: article 98, /businesses/clara 98, /sustainability 94, /news 94, /contact 77, /privacy 78; CLS 0 everywhere; SEO 100, accessibility 96–97.
+**Open:** /contact and /privacy LCP ≈ 5 s on simulated mobile (text-only heroes; accepted by the client as good enough). Home/about Lighthouse runs failed in the sandbox (blocked Unsplash images), earlier run: home 90.
+
 ### Phase 4 follow-up — 2026-10-03
 Fixed after the first run on the developer machine: `querySrv ECONNREFUSED` on seed (optional `MONGODB_DNS_SERVERS`); dev-overlay "uncached data during prerendering" on dashboard pages (`instant = false` per page); "unique key" warning from FounderSection (key before spread, `itemKey` everywhere); scroll-behavior notice (`data-scroll-behavior`). Reproduced each in `next dev` and confirmed gone; build 0 warnings, eslint 0, check:cms 68/68.
 Open (Phase 5): Next reports `/asma.jpeg` as the LCP image on some viewports; LCP preload/eager is part of the Phase 5 performance pass.
+
+---
+
+## 11. Deploy on Vercel
+
+1. **MongoDB Atlas** → Network Access → add `0.0.0.0/0` (Vercel has no fixed IPs) and use a strong, DB-only user. Pick the Vercel region closest to the Atlas cluster: `vercel.json` sets `sin1` (Singapore); change it if the cluster is elsewhere.
+2. **Import** the GitHub repo in Vercel (framework auto-detected, Node 24 from `engines`).
+3. **Environment variables** (Production *and* Preview, because `next build` reads the DB):
+   `NEXT_PUBLIC_SITE_URL` (the real https domain, no trailing slash), `MONGODB_URI`, `JWT_SECRET` (≥ 32 random chars: `openssl rand -base64 48`), `IP_HASH_SALT` (random), `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM_NAME`, `CONTACT_FALLBACK_INBOX`. Do **not** set `SEED_*` on Vercel.
+4. **Seed once** from your own machine against the production URI: `npm run seed` (with `.env.local` pointing at it).
+5. **Deploy.** Then add the domain (Vercel → Domains), and set `NEXT_PUBLIC_SITE_URL` to it and redeploy (cookies, canonical URLs, sitemap and OG cards use it).
+6. **After the first deploy:** sign in at `/admin`, change the seeded password, open Settings → Mail and send a test email, submit the contact form once, then submit `https://<domain>/sitemap.xml` in Google Search Console.
+7. **Uploads:** Vercel's disk is read-only, so the upload button is disabled there. Use pasted image URLs or put files in `public/` until S3/R2 storage is added (`server/storage/uploads.js`).

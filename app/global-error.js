@@ -15,7 +15,7 @@ export default function GlobalError({ error, retry }) {
 
     return (
         <html lang="en">
-            <body>
+            <body suppressHydrationWarning>
                 <title>Service Interruption | Warrick Group</title>
                 <main className="flex min-h-screen flex-col justify-center bg-surface-soft">
                     <ErrorView digest={error?.digest} onRetry={retry} />

@@ -15,11 +15,12 @@ export default async function NewsPage() {
     const header = (
         <div className="grid gap-x-8 gap-y-8 lg:grid-cols-12 lg:gap-x-20">
             <div className="lg:col-span-7">
-                <Rise as="p" className="eyebrow text-gold-dark">
+                <Rise as="p" order={0} className="eyebrow text-gold-dark">
                     {hero.eyebrow}
                 </Rise>
                 <Rise
                     as="h1"
+                    order={1}
                     id="newsroom-heading"
                     className="mt-7 max-w-[16ch] text-[clamp(2rem,3.8vw,3.5rem)] leading-[1.1] font-bold text-royal"
                 >
@@ -30,6 +31,7 @@ export default async function NewsPage() {
             {hero.lead ? (
                 <Rise
                     as="p"
+                    order={2}
                     className="max-w-[52ch] self-end text-[15px] leading-[1.9] text-ink-muted lg:col-span-4 lg:col-start-9"
                 >
                     {hero.lead}

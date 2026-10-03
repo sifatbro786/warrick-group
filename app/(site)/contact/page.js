@@ -32,15 +32,16 @@ export default async function ContactPage() {
             {/* =============================== HERO =============================== */}
             <section aria-labelledby="contact-heading" className="bg-surface-soft">
                 <Stagger
-                    onMount
+                    css
                     className="mx-auto grid max-w-360 gap-x-8 gap-y-8 px-5 pt-20 pb-20 sm:px-6 lg:grid-cols-12 lg:gap-x-20 lg:px-10 lg:pt-32 lg:pb-28"
                 >
                     <div className="lg:col-span-7">
-                        <Rise as="p" className="eyebrow text-gold-dark">
+                        <Rise as="p" order={0} className="eyebrow text-gold-dark">
                             {hero.eyebrow}
                         </Rise>
                         <Rise
                             as="h1"
+                            order={1}
                             id="contact-heading"
                             className="mt-7 max-w-[18ch] text-[clamp(2rem,3.8vw,3.5rem)] leading-[1.1] font-bold text-royal"
                         >
@@ -51,6 +52,7 @@ export default async function ContactPage() {
                     {hero.lead ? (
                         <Rise
                             as="p"
+                            order={2}
                             className="max-w-[52ch] self-end text-[15px] leading-[1.9] text-ink-muted lg:col-span-4 lg:col-start-9"
                         >
                             {hero.lead}
