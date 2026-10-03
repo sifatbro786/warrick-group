@@ -1,6 +1,6 @@
 import Plate from "@/components/ui/Plate";
 import { Rise, Stagger } from "@/components/motion/Reveal";
-import { pad } from "@/lib/format";
+import { pad, itemKey } from "@/lib/format";
 
 /* ==========================================================================
    CommitmentSection (React: ValuesESGSection). Tall plate left, commitments
@@ -42,7 +42,7 @@ export default function CommitmentSection({ heading = {}, image, values = [] }) 
                     <dl className="mt-12">
                         {values.map((value, index) => (
                             <Rise
-                                key={value._id ?? value.title}
+                                key={itemKey(value, index)}
                                 className="border-t border-line py-9 last:pb-0"
                             >
                                 <dt className="flex items-baseline gap-5">

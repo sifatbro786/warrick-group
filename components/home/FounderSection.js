@@ -1,6 +1,7 @@
 import ArrowLink from "@/components/ui/ArrowLink";
 import Plate from "@/components/ui/Plate";
 import { Rise, Stagger } from "@/components/motion/Reveal";
+import { itemKey } from "@/lib/format";
 
 /* ==========================================================================
    FounderSection (React: AboutOverviewSection). The founder column carries
@@ -72,9 +73,9 @@ export default function FounderSection({ founder = {}, legalName }) {
                     <div className="lg:col-span-6">
                         {(founder.paragraphs ?? []).map((paragraph, index) => (
                             <Rise
+                                key={paragraph.slice(0, 24)}
                                 as="p"
                                 {...rise}
-                                key={paragraph.slice(0, 24)}
                                 className={`max-w-[56ch] text-[15px] leading-[1.9] text-ink-muted ${index === 0 ? "" : "mt-7"}`}
                             >
                                 {paragraph}
@@ -82,10 +83,13 @@ export default function FounderSection({ founder = {}, legalName }) {
                         ))}
 
                         <dl className="mt-16">
-                            {(founder.pillars ?? []).map((pillar) => (
+                            {(founder.pillars ?? []).map((pillar, index) => (
+                                /* key before the spread: after it, JSX compiles to
+                                   createElement and React flags the two children
+                                   below as an unkeyed list once they reach the client. */
                                 <Rise
+                                    key={itemKey(pillar, index)}
                                     {...rise}
-                                    key={pillar._id ?? pillar.title}
                                     className="border-t border-line py-6"
                                 >
                                     <dt className="text-[17px] font-bold text-royal">{pillar.title}</dt>

@@ -12,7 +12,8 @@
         "start": "next start",
         "lint": "eslint",
         "seed": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed/index.js",
-        "seed:reset": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed/index.js --reset"
+        "seed:reset": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed/index.js --reset",
+        "check:cms": "node scripts/check-cms.js"
     },
     "dependencies": {
         "@hookform/resolvers": "^5.9.1",
@@ -29,6 +30,7 @@
         "react-dom": "19.2.8",
         "react-hook-form": "^7.89.0",
         "server-only": "^0.0.1",
+        "sharp": "^0.35.5",
         "sonner": "^2.0.8",
         "swiper": "^14.3.0",
         "tailwind-merge": "^3.7.0",

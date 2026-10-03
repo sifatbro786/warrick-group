@@ -21,6 +21,14 @@ const schemas = {
             .string()
             .min(1, "MONGODB_URI is required")
             .regex(/^mongodb(\+srv)?:\/\//, "MONGODB_URI must start with mongodb:// or mongodb+srv://"),
+        /* Optional, comma-separated DNS servers for resolving mongodb+srv://
+           (e.g. "8.8.8.8,1.1.1.1"). Fixes "querySrv ECONNREFUSED" when the
+           local/ISP resolver refuses SRV lookups (common with Node on Windows). */
+        MONGODB_DNS_SERVERS: z
+            .string()
+            .optional()
+            .transform((v) => (v ? v.split(",").map((s) => s.trim()).filter(Boolean) : []))
+            .refine((list) => list.every((ip) => /^[\d.:a-fA-F]+$/.test(ip)), "MONGODB_DNS_SERVERS must be IP addresses, comma-separated"),
     }),
 
     auth: z.object({

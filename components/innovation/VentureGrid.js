@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/ui/SmartImage";
 import { AnimatePresence } from "framer-motion";
 import Dialog from "@/components/dialog/Dialog";
 import { Rise, Stagger } from "@/components/motion/Reveal";
-import { stageLabel } from "@/lib/format";
+import { itemKey, stageLabel } from "@/lib/format";
 
 /* Content only — every modal behaviour belongs to the shared Dialog. */
 function VentureDialog({ venture, onClose }) {
@@ -56,8 +56,8 @@ function VentureDialog({ venture, onClose }) {
                         <dt className="eyebrow text-ink-muted">Location</dt>
                         <dd className="mt-3 text-[15px] font-semibold text-royal">{venture.location}</dd>
                     </div>
-                    {milestones.slice(0, 2).map((milestone) => (
-                        <div key={milestone._id ?? milestone.label} className="border-t border-line pt-5">
+                    {milestones.slice(0, 2).map((milestone, index) => (
+                        <div key={itemKey(milestone, index)} className="border-t border-line pt-5">
                             <dt className="eyebrow text-ink-muted">{milestone.label}</dt>
                             <dd className="mt-3 font-display text-[18px] leading-none font-bold text-royal tabular-nums">
                                 {milestone.value}
@@ -80,9 +80,9 @@ function VentureDialog({ venture, onClose }) {
                 {/* Full milestone set, including the two surfaced above. */}
                 {milestones.length ? (
                     <dl className="mt-14 border-t border-line pt-2">
-                        {milestones.map((milestone) => (
+                        {milestones.map((milestone, index) => (
                             <div
-                                key={milestone._id ?? milestone.label}
+                                key={itemKey(milestone, index)}
                                 className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2 border-b border-line py-5"
                             >
                                 <dt className="text-[14px] text-ink-muted">{milestone.label}</dt>

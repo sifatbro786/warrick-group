@@ -1,3 +1,5 @@
+import { REMOTE_IMAGE_HOSTS } from "./lib/images.js";
+
 /**
  * Security headers applied to every response.
  * A Content-Security-Policy is added in Phase 5: a nonce-based CSP forces
@@ -34,11 +36,13 @@ const nextConfig = {
         formats: ["image/avif", "image/webp"],
         /* Next 16 only allows quality 75 unless listed here. */
         qualities: [70, 75, 85],
-        remotePatterns: [
-            /* Seed content still points at Unsplash placeholders. Remove once
-               every image has been replaced through the admin uploader. */
-            { protocol: "https", hostname: "images.unsplash.com" },
-        ],
+        /* Local images (public/ and dashboard uploads under /uploads) may be
+           optimised, but never with a query string: stops the optimiser from
+           being used to mint endless cache variants of one file. */
+        localPatterns: [{ pathname: "/**", search: "" }],
+        /* Hosts live in lib/images.js; SmartImage renders any other host
+           unoptimised instead of failing the page. */
+        remotePatterns: REMOTE_IMAGE_HOSTS.map((hostname) => ({ protocol: "https", hostname })),
     },
 
     async headers() {

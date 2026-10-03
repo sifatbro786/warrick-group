@@ -25,6 +25,7 @@ import {
     Business,
     Inquiry,
     Leader,
+    Media,
     NewsCategory,
     Office,
     Page,
@@ -130,7 +131,7 @@ async function main() {
     /* Build/refresh indexes first so unique constraints exist before writes. */
     for (const model of [
         User, Business, NewsCategory, Article, Leader, Venture, Report, Office,
-        SeoSetting, SiteSettings, Page, Inquiry, AuditLog, RateLimit,
+        SeoSetting, SiteSettings, Page, Inquiry, AuditLog, RateLimit, Media,
     ]) {
         await model.syncIndexes();
     }

@@ -16,6 +16,7 @@ export { Inquiry } from "./Inquiry.js";
 export { SeoSetting } from "./SeoSetting.js";
 export { SiteSettings } from "./SiteSettings.js";
 export { AuditLog } from "./AuditLog.js";
+export { Media, MEDIA_KINDS } from "./Media.js";
 export { RateLimit } from "./RateLimit.js";
 export {
     Page,

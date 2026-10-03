@@ -1,4 +1,5 @@
 import { Schema } from "mongoose";
+import { FOCAL, SAFE_HREF, SAFE_SRC, SLUG } from "../validators/patterns.js";
 
 /**
  * Shared schema building blocks.
@@ -30,20 +31,15 @@ export const slugField = () => ({
     trim: true,
     lowercase: true,
     maxlength: 120,
-    match: [/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug may only contain a-z, 0-9 and single hyphens"],
+    match: [SLUG, "Slug may only contain a-z, 0-9 and single hyphens"],
 });
 
 /* ---- URL safety --------------------------------------------------------- */
 
-/**
- * Internal path ("/about", "/contact?type=media", "/about#board"), absolute
- * http(s) URL, mailto: or tel:. Anything else — notably `javascript:` and
- * protocol-relative "//evil.com" — is rejected.
- */
-export const SAFE_HREF = /^(\/(?!\/)[^\s]*|#[\w-]*|https?:\/\/[^\s]+|mailto:[^\s]+|tel:\+?[\d\s-]+)$/i;
-
-/** Image/file source: local path ("/logo.png", "/uploads/…") or https URL. */
-export const SAFE_SRC = /^(\/(?!\/)[^\s]*|https:\/\/[^\s]+)$/i;
+/* The patterns live in validators/patterns.js so the dashboard's Zod schemas
+   and these models enforce exactly the same rule. Re-exported for callers
+   that imported them from here. */
+export { SAFE_HREF, SAFE_SRC };
 
 export const href = (extra = {}) => str(500, { match: [SAFE_HREF, "Invalid link"], ...extra });
 export const src = (extra = {}) => str(1000, { match: [SAFE_SRC, "Invalid image or file path"], ...extra });
@@ -57,7 +53,7 @@ export const imageSchema = new Schema(
     {
         url: src({ required: true }),
         alt: str(300),
-        focal: str(40, { default: "center", match: [/^[a-z0-9%.\s-]+$/i, "Invalid focal point"] }),
+        focal: str(40, { default: "center", match: [FOCAL, "Invalid focal point"] }),
     },
     opts,
 );

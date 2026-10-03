@@ -16,8 +16,9 @@ export default function LoginForm({ next }) {
     });
     const { errors } = form.formState;
 
+    /* method="post": if JS hasn't loaded yet, a native submit must never put the password in the URL. */
     return (
-        <form onSubmit={onSubmit} noValidate className="space-y-5">
+        <form method="post" onSubmit={onSubmit} noValidate className="space-y-5">
             <FormAlert>{formError}</FormAlert>
             <Field label="Email" htmlFor="email" error={errors.email?.message}>
                 <Input

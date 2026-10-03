@@ -1,4 +1,5 @@
 import { Rise, Stagger } from "@/components/motion/Reveal";
+import { itemKey } from "@/lib/format";
 
 /* ==========================================================================
    BrandsSection (React: BrandLogosSection). Typographic wordmarks, no boxes
@@ -31,8 +32,8 @@ export default function BrandsSection({ heading = {}, items = [] }) {
                         {...rise}
                         className="mt-16 grid grid-cols-2 items-center gap-x-8 gap-y-12 border-t border-line pt-16 sm:grid-cols-3 lg:mt-20 lg:grid-cols-6 lg:gap-x-10"
                     >
-                        {items.map((brand) => (
-                            <li key={brand._id ?? brand.name} className="text-center">
+                        {items.map((brand, index) => (
+                            <li key={itemKey(brand, index)} className="text-center">
                                 <span className="inline-block text-[13px] leading-tight font-bold tracking-[0.16em] whitespace-nowrap text-ink uppercase opacity-50 transition-opacity duration-500 ease-premium hover:opacity-100">
                                     {brand.name}
                                 </span>

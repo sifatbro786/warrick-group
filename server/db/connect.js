@@ -1,3 +1,4 @@
+import dns from "node:dns";
 import mongoose from "mongoose";
 import { dbEnv } from "../env.js";
 
@@ -25,7 +26,10 @@ export async function connectDB() {
     if (globalCache.conn) return globalCache.conn;
 
     if (!globalCache.promise) {
-        const { MONGODB_URI } = dbEnv();
+        const { MONGODB_URI, MONGODB_DNS_SERVERS } = dbEnv();
+        /* mongodb+srv:// needs an SRV lookup; some resolvers (ISP DNS, Node
+           on Windows) refuse it with "querySrv ECONNREFUSED". */
+        if (MONGODB_DNS_SERVERS.length) dns.setServers(MONGODB_DNS_SERVERS);
         globalCache.promise = mongoose
             .connect(MONGODB_URI, {
                 bufferCommands: false,

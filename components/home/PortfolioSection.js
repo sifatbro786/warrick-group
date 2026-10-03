@@ -2,7 +2,7 @@ import Link from "next/link";
 import ArrowLink from "@/components/ui/ArrowLink";
 import Plate from "@/components/ui/Plate";
 import { Rise, Stagger } from "@/components/motion/Reveal";
-import { pad } from "@/lib/format";
+import { pad, itemKey } from "@/lib/format";
 
 /* ==========================================================================
    PortfolioSection — alternating editorial rows rather than a card grid, so
@@ -49,7 +49,7 @@ export default function PortfolioSection({ heading = {}, items = [], itemCtaLabe
                         return (
                             <Stagger
                                 as="article"
-                                key={entity._id ?? entity.name}
+                                key={itemKey(entity, index)}
                                 stagger={0.12}
                                 margin="-80px"
                                 className="grid items-center gap-10 border-t border-line pt-12 pb-20 last:pb-0 lg:grid-cols-12 lg:gap-16 lg:pt-16 lg:pb-28"

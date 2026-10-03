@@ -49,3 +49,38 @@ export const escapeHtml = (value = "") =>
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+
+/**
+ * Settings → "Send a test email". Verifies the SMTP login first so a bad
+ * password reads as a login problem, not a delivery one.
+ * @returns {Promise<{ ok: true } | { ok: false, message: string }>}
+ */
+export async function sendTestMail(to, brandName = "Warrick Group") {
+    let transporter;
+    try {
+        transporter = getTransport();
+    } catch (error) {
+        return { ok: false, message: String(error?.message ?? error).split("\n")[0] || "SMTP is not configured." };
+    }
+    try {
+        await transporter.verify();
+    } catch (error) {
+        return { ok: false, message: `The mail server refused the connection or login: ${smtpReason(error)}` };
+    }
+    try {
+        await sendMail({
+            to,
+            subject: `${brandName} — test email from the dashboard`,
+            text: `This is a test message from the ${brandName} dashboard.\n\nIf you can read it, contact-form notifications can be delivered.`,
+        });
+        return { ok: true };
+    } catch (error) {
+        return { ok: false, message: `The mail server accepted the login but did not deliver: ${smtpReason(error)}` };
+    }
+}
+
+/* Short, credential-free reason for the admin. */
+const smtpReason = (error) =>
+    String(error?.response ?? error?.message ?? "unknown error")
+        .replace(/\s+/g, " ")
+        .slice(0, 200);

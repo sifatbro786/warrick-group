@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/ui/SmartImage";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Swiper from "swiper";
 import { A11y, Autoplay, EffectFade, FreeMode, Keyboard, Thumbs } from "swiper/modules";
-import { pad } from "@/lib/format";
+import { pad, itemKey } from "@/lib/format";
 
 import "swiper/css";
 import "swiper/css/effect-fade";
@@ -104,7 +104,7 @@ export default function HeroCarousel({ srHeading, slides }) {
                 <div className="swiper-wrapper">
                     {slides.map((slide, index) => (
                         <div
-                            key={slide._id ?? slide.name}
+                            key={itemKey(slide, index)}
                             className={`swiper-slide relative overflow-hidden ${index === 0 ? "swiper-slide-active" : ""}`}
                         >
                             {/* Plate. bg-royal-dark on the section is the fallback. */}
@@ -195,7 +195,7 @@ export default function HeroCarousel({ srHeading, slides }) {
                             <div className="swiper-wrapper">
                                 {slides.map((slide, index) => (
                                     <div
-                                        key={slide._id ?? slide.name}
+                                        key={itemKey(slide, index)}
                                         className={`swiper-slide w-auto! ${index === 0 ? "swiper-slide-thumb-active" : ""}`}
                                     >
                                         <button

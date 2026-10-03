@@ -19,7 +19,7 @@ export function ProfileForm({ name }) {
     const { errors, isDirty } = form.formState;
 
     return (
-        <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4 sm:flex-row sm:items-start">
+        <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <FormAlert>{formError}</FormAlert>
             <Field label="Full name" htmlFor="pf-name" error={errors.name?.message} className="flex-1">
                 <Input autoComplete="name" {...describe("pf-name", errors.name)} {...form.register("name")} />
@@ -41,7 +41,7 @@ export function ChangePasswordForm({ email }) {
     const { errors } = form.formState;
 
     return (
-        <form onSubmit={onSubmit} noValidate className="max-w-md space-y-4">
+        <form method="post" onSubmit={onSubmit} noValidate className="max-w-md space-y-4">
             <FormAlert>{formError}</FormAlert>
             {/* Lets password managers attach the new password to the right account. */}
             <input type="email" autoComplete="username" hidden readOnly value={email} />

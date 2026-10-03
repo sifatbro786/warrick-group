@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { isExternal } from "@/lib/format";
+import { isExternal, itemKey } from "@/lib/format";
 
 /* ==========================================================================
    Footer — ported 1:1 from warrick-frontend/src/components/common/Footer.jsx.
@@ -130,7 +130,7 @@ export default function Footer({ brand, footer, offices, year }) {
                     {/* ---------------- Link columns ---------------- */}
                     {columns.map((column, index) => (
                         <nav
-                            key={column._id ?? column.title}
+                            key={itemKey(column, index)}
                             aria-labelledby={`footer-col-${index}`}
                             className="lg:col-span-2"
                         >

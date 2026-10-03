@@ -3,7 +3,7 @@ import PageHero from "@/components/ui/PageHero";
 import SectionHeading, { SplitHeading } from "@/components/ui/SectionHeading";
 import VentureGrid from "@/components/innovation/VentureGrid";
 import { Rise, Stagger } from "@/components/motion/Reveal";
-import { pad } from "@/lib/format";
+import { pad, itemKey } from "@/lib/format";
 import { getPage, listVentures } from "@/server/services/content";
 import { buildPageMetadata } from "@/server/services/seo";
 
@@ -39,7 +39,7 @@ export default async function InnovationPage() {
                         {(focus.areas ?? []).map((area, index) => (
                             <Rise
                                 as="article"
-                                key={area._id ?? area.title}
+                                key={itemKey(area, index)}
                                 className="grid gap-x-8 gap-y-6 border-t border-line py-10 lg:grid-cols-12 lg:gap-x-20 lg:py-12"
                             >
                                 <div className="lg:col-span-4">

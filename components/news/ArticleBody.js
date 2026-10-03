@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "@/components/ui/SmartImage";
 import { formatLongDate, isoDay } from "@/lib/format";
 
 /**

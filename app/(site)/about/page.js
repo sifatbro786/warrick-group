@@ -3,7 +3,7 @@ import PageHero from "@/components/ui/PageHero";
 import Plate from "@/components/ui/Plate";
 import SectionHeading, { SplitHeading } from "@/components/ui/SectionHeading";
 import { Rise, Stagger } from "@/components/motion/Reveal";
-import { pad } from "@/lib/format";
+import { pad, itemKey } from "@/lib/format";
 import { getPage, getSiteSettings, listLeaders } from "@/server/services/content";
 import { buildPageMetadata } from "@/server/services/seo";
 
@@ -47,8 +47,8 @@ export default async function AboutPage() {
                         as="dl"
                         className="mt-20 grid grid-cols-2 gap-x-8 gap-y-10 lg:mt-28 lg:grid-cols-4 lg:gap-x-12"
                     >
-                        {hero.meta.map((item) => (
-                            <div key={item._id ?? item.label} className="border-t border-white/12 pt-6">
+                        {hero.meta.map((item, index) => (
+                            <div key={itemKey(item, index)} className="border-t border-white/12 pt-6">
                                 <dt className="eyebrow text-white/45">{item.label}</dt>
                                 <dd className="mt-4 font-display text-[clamp(1.5rem,2.4vw,2.25rem)] leading-none font-bold tracking-tight text-white">
                                     {item.value}
@@ -88,7 +88,7 @@ export default async function AboutPage() {
 
                         <dl className="mt-14">
                             {(story.values ?? []).map((value, index) => (
-                                <Rise key={value._id ?? value.title} className="border-t border-line py-8 last:pb-0">
+                                <Rise key={itemKey(value, index)} className="border-t border-line py-8 last:pb-0">
                                     <dt className="flex items-baseline gap-5">
                                         <span className="eyebrow text-ink-muted/60">{pad(index + 1)}</span>
                                         <span className="text-[17px] font-bold text-royal">{value.title}</span>
@@ -231,9 +231,9 @@ export default async function AboutPage() {
                     {/* Hairline clause rows — the register of a governance
                         statement, not a card grid. */}
                     <dl className="mt-20 lg:mt-24">
-                        {(governance.clauses ?? []).map((clause) => (
+                        {(governance.clauses ?? []).map((clause, index) => (
                             <Rise
-                                key={clause._id ?? clause.title}
+                                key={itemKey(clause, index)}
                                 className="grid gap-x-8 gap-y-4 border-t border-line py-9 lg:grid-cols-12 lg:gap-x-20 lg:py-11"
                             >
                                 <dt className="text-[17px] font-bold text-royal lg:col-span-4">{clause.title}</dt>

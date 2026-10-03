@@ -5,7 +5,7 @@ import PageHero from "@/components/ui/PageHero";
 import Plate from "@/components/ui/Plate";
 import SectionHeading, { SplitHeading } from "@/components/ui/SectionHeading";
 import { Rise, Stagger } from "@/components/motion/Reveal";
-import { pad } from "@/lib/format";
+import { pad, itemKey } from "@/lib/format";
 import { getBusinessBySlug, getPage, listBusinesses } from "@/server/services/content";
 import { buildPageMetadata } from "@/server/services/seo";
 
@@ -150,8 +150,8 @@ export default async function BusinessDetailPage({ params }) {
 
                         {/* Four related measurements of one business, stacked. */}
                         <dl className="lg:col-span-5 lg:col-start-8">
-                            {metrics.map((metric) => (
-                                <Rise key={metric._id ?? metric.label} className="border-t border-line py-8 last:pb-0">
+                            {metrics.map((metric, index) => (
+                                <Rise key={itemKey(metric, index)} className="border-t border-line py-8 last:pb-0">
                                     <dt className="eyebrow text-ink-muted">{metric.label}</dt>
                                     <dd>
                                         <span className="mt-4 block font-display text-[clamp(1.75rem,2.4vw,2.375rem)] leading-none font-bold tracking-tight text-royal tabular-nums">
@@ -183,7 +183,7 @@ export default async function BusinessDetailPage({ params }) {
                         <dl className="mt-20 lg:mt-24">
                             {capabilities.map((capability, index) => (
                                 <Rise
-                                    key={capability._id ?? capability.title}
+                                    key={itemKey(capability, index)}
                                     className="grid gap-x-8 gap-y-4 border-t border-line py-9 lg:grid-cols-12 lg:gap-x-20 lg:py-11"
                                 >
                                     <dt className="flex items-baseline gap-5 lg:col-span-4">
@@ -218,7 +218,7 @@ export default async function BusinessDetailPage({ params }) {
                             {(operations.steps ?? []).map((step, index) => (
                                 <Rise
                                     as="li"
-                                    key={step._id ?? step.title}
+                                    key={itemKey(step, index)}
                                     className="grid gap-x-8 gap-y-4 border-t border-line py-10 lg:grid-cols-12 lg:gap-x-20 lg:py-12"
                                 >
                                     <p className="font-display text-[clamp(1.75rem,2.4vw,2.375rem)] leading-none font-bold tracking-tight text-ink-muted/35 tabular-nums lg:col-span-2">

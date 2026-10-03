@@ -24,8 +24,10 @@ export function generateMetadata() {
 }
 
 export default function RootLayout({ children }) {
+    /* data-scroll-behavior: globals.css sets smooth scrolling for in-page
+       anchors; this tells Next to switch it off during route changes. */
     return (
-        <html lang="en" className={`${jakarta.variable} ${grotesk.variable}`}>
+        <html lang="en" className={`${jakarta.variable} ${grotesk.variable}`} data-scroll-behavior="smooth">
             <body>{children}</body>
         </html>
     );

@@ -3,7 +3,7 @@ import PageHero from "@/components/ui/PageHero";
 import Plate from "@/components/ui/Plate";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { Rise, Stagger } from "@/components/motion/Reveal";
-import { pad } from "@/lib/format";
+import { pad, itemKey } from "@/lib/format";
 import { getPage, listBusinesses } from "@/server/services/content";
 import { buildPageMetadata } from "@/server/services/seo";
 
@@ -159,8 +159,8 @@ export default async function BusinessesPage() {
 
                         {outro.links?.length ? (
                             <Rise className="mt-12 flex flex-col gap-6 sm:flex-row sm:gap-12">
-                                {outro.links.map((link) => (
-                                    <ArrowLink key={link._id ?? link.path} href={link.path} className="w-fit">
+                                {outro.links.map((link, index) => (
+                                    <ArrowLink key={itemKey(link, index)} href={link.path} className="w-fit">
                                         {link.label}
                                     </ArrowLink>
                                 ))}

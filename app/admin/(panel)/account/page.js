@@ -4,6 +4,10 @@ import { PageHeader, Panel, PanelHeader } from "@/components/admin/ui/Panel";
 import { ChangePasswordForm, ProfileForm, SignOutEverywhere } from "@/components/admin/account/AccountForms";
 import { formatDateTime } from "@/lib/admin/format";
 
+/* Reads the session on every request: not an instant navigation (see PHASES.md).
+   `instant` is per segment, so each dashboard page opts out itself. */
+export const instant = false;
+
 export const metadata = { title: "Account" };
 
 export default async function AccountPage() {

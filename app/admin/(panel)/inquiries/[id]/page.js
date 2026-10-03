@@ -9,6 +9,10 @@ import Badge, { INQUIRY_STATUS } from "@/components/admin/ui/Badge";
 import InquiryActions from "@/components/admin/inquiries/InquiryActions";
 import { formatDateTime } from "@/lib/admin/format";
 
+/* Reads the session on every request: not an instant navigation (see PHASES.md).
+   `instant` is per segment, so each dashboard page opts out itself. */
+export const instant = false;
+
 export const metadata = { title: "Inquiry" };
 
 export default async function InquiryPage({ params }) {

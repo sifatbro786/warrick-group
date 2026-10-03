@@ -1,7 +1,7 @@
 import PageHero from "@/components/ui/PageHero";
 import SectionHeading, { SplitHeading } from "@/components/ui/SectionHeading";
 import { Rise, Stagger } from "@/components/motion/Reveal";
-import { formatMonthYear, pad, statusLabel } from "@/lib/format";
+import { formatMonthYear, pad, statusLabel, itemKey } from "@/lib/format";
 import { getPage, listReports } from "@/server/services/content";
 import { buildPageMetadata } from "@/server/services/seo";
 
@@ -32,8 +32,8 @@ export default async function SustainabilityPage() {
             >
                 {position.length ? (
                     <Rise as="dl" className="mt-20 grid grid-cols-2 gap-x-8 gap-y-12 lg:mt-28 lg:grid-cols-4 lg:gap-x-12">
-                        {position.map((item) => (
-                            <div key={item._id ?? item.label} className="border-t border-white/12 pt-6">
+                        {position.map((item, index) => (
+                            <div key={itemKey(item, index)} className="border-t border-white/12 pt-6">
                                 <dt className="eyebrow text-white/45">{item.label}</dt>
                                 <dd>
                                     <span className="mt-4 block font-display text-[clamp(1.5rem,2.4vw,2.25rem)] leading-none font-bold tracking-tight text-white">
@@ -63,13 +63,13 @@ export default async function SustainabilityPage() {
                     {/* The year carries the hierarchy. The active row takes a gold
                         rule instead of a grey one — the only marker on the line. */}
                     <ol className="mt-20 lg:mt-24">
-                        {(roadmap.milestones ?? []).map((milestone) => {
+                        {(roadmap.milestones ?? []).map((milestone, index) => {
                             const isActive = milestone.status === "active";
 
                             return (
                                 <Rise
                                     as="li"
-                                    key={milestone._id ?? `${milestone.year}-${milestone.title}`}
+                                    key={itemKey(milestone, index)}
                                     className={`grid gap-x-8 gap-y-5 border-t py-10 lg:grid-cols-12 lg:gap-x-20 lg:py-12 ${
                                         isActive ? "border-gold" : "border-line"
                                     }`}
@@ -132,7 +132,7 @@ export default async function SustainabilityPage() {
                         {(esg.pillars ?? []).map((pillar, index) => (
                             <Rise
                                 as="section"
-                                key={pillar._id ?? pillar.code}
+                                key={itemKey(pillar, index)}
                                 aria-labelledby={`pillar-${pillar.code}`}
                                 className="grid gap-x-8 gap-y-10 border-t border-line py-12 lg:grid-cols-12 lg:gap-x-20 lg:py-16"
                             >
@@ -168,9 +168,9 @@ export default async function SustainabilityPage() {
 
                                 {/* ---- Readings ---- */}
                                 <dl className="lg:col-span-3 lg:col-start-10">
-                                    {(pillar.metrics ?? []).map((metric) => (
+                                    {(pillar.metrics ?? []).map((metric, index) => (
                                         <div
-                                            key={metric._id ?? metric.label}
+                                            key={itemKey(metric, index)}
                                             className="border-t border-line py-6 first:border-t-0 first:pt-0"
                                         >
                                             <dt className="eyebrow text-ink-muted">{metric.label}</dt>

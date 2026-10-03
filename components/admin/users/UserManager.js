@@ -52,7 +52,7 @@ function CreateUserForm({ onDone }) {
     const { errors } = form.formState;
 
     return (
-        <form onSubmit={onSubmit} noValidate className="space-y-4">
+        <form method="post" onSubmit={onSubmit} noValidate className="space-y-4">
             <FormAlert>{formError}</FormAlert>
             <Field label="Full name" htmlFor="cu-name" error={errors.name?.message}>
                 <Input autoComplete="off" {...describe("cu-name", errors.name)} {...form.register("name")} />
@@ -164,7 +164,7 @@ function EditUserForm({ user, self, onDone }) {
     const { errors } = form.formState;
 
     return (
-        <form onSubmit={onSubmit} noValidate className="space-y-4">
+        <form method="post" onSubmit={onSubmit} noValidate className="space-y-4">
             <FormAlert>{formError}</FormAlert>
             <Field label="Full name" htmlFor="eu-name" error={errors.name?.message}>
                 <Input autoComplete="off" {...describe("eu-name", errors.name)} {...form.register("name")} />
@@ -199,7 +199,7 @@ function ResetPasswordForm({ user, onDone }) {
     });
 
     return (
-        <form onSubmit={onSubmit} noValidate className="space-y-4">
+        <form method="post" onSubmit={onSubmit} noValidate className="space-y-4">
             <FormAlert>{formError}</FormAlert>
             <PasswordFields idPrefix="rp" form={form} />
             <div className="flex justify-end gap-2 pt-2">

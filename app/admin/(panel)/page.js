@@ -6,6 +6,10 @@ import { EmptyState, PageHeader, Panel, PanelHeader } from "@/components/admin/u
 import Badge, { INQUIRY_STATUS } from "@/components/admin/ui/Badge";
 import { formatRelative } from "@/lib/admin/format";
 
+/* Reads the session on every request: not an instant navigation (see PHASES.md).
+   `instant` is per segment, so each dashboard page opts out itself. */
+export const instant = false;
+
 export const metadata = { title: "Overview" };
 
 /* Fallback wording when an audit entry has no summary. */

@@ -6,15 +6,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dialog, Tooltip } from "radix-ui";
 import {
+    Building2,
     ExternalLink,
+    FileDown,
+    Files,
+    FlaskConical,
+    History,
+    Images,
     Inbox,
     LayoutDashboard,
     LogOut,
+    MapPin,
     Menu as MenuIcon,
+    Newspaper,
     PanelLeftClose,
     PanelLeftOpen,
+    SearchCheck,
+    Settings,
     UserRound,
     Users,
+    UsersRound,
     X,
 } from "lucide-react";
 import { logout } from "@/server/actions/auth";
@@ -25,13 +36,12 @@ import { cn } from "@/lib/cn";
  * Dashboard chrome: collapsible sidebar (desktop), drawer (mobile), user menu.
  * ---------------------------------------------------------------------------
  * Navigation lives here, not in the DB: it is interface, not content.
- * Phase 4 adds the content section (Pages, Businesses, News…) to NAV.
  *
  * Hiding "Users" for admins is cosmetic; the page and every action check
  * the role on the server.
  */
 
-/** @type {Array<{ label?: string, items: Array<{ href: string, label: string, icon: any, superOnly?: boolean, badge?: string, exact?: boolean }> }>} */
+/** @type {Array<{ label?: string, items: Array<{ href: string, label: string, icon: any, superOnly?: boolean, badge?: string, exact?: boolean, also?: string[] }> }>} */
 const NAV = [
     {
         items: [
@@ -39,11 +49,33 @@ const NAV = [
             { href: "/admin/inquiries", label: "Inquiries", icon: Inbox, badge: "newInquiries" },
         ],
     },
-    // Phase 4 — { label: "Content", items: [Pages, Businesses, News, Leaders, Ventures, Reports, Offices] },
-    // Phase 4 — { label: "Site", items: [SEO, Settings] },
+    {
+        label: "Content",
+        items: [
+            { href: "/admin/pages", label: "Pages", icon: Files },
+            { href: "/admin/businesses", label: "Businesses", icon: Building2 },
+            /* Categories live under the newsroom. */
+            { href: "/admin/articles", label: "Newsroom", icon: Newspaper, also: ["/admin/categories"] },
+            { href: "/admin/leaders", label: "Leadership", icon: UsersRound },
+            { href: "/admin/ventures", label: "Ventures", icon: FlaskConical },
+            { href: "/admin/reports", label: "Reports", icon: FileDown },
+            { href: "/admin/offices", label: "Offices", icon: MapPin },
+            { href: "/admin/media", label: "Media", icon: Images },
+        ],
+    },
+    {
+        label: "Site",
+        items: [
+            { href: "/admin/seo", label: "SEO", icon: SearchCheck },
+            { href: "/admin/settings", label: "Settings", icon: Settings },
+        ],
+    },
     {
         label: "Administration",
-        items: [{ href: "/admin/users", label: "Users", icon: Users, superOnly: true }],
+        items: [
+            { href: "/admin/users", label: "Users", icon: Users, superOnly: true },
+            { href: "/admin/activity", label: "Activity log", icon: History },
+        ],
     },
 ];
 
@@ -169,8 +201,8 @@ function Brand({ compact = false, collapsed = false }) {
 
 function SidebarBody({ user, counts, collapsed, onNavigate }) {
     const pathname = usePathname();
-    const isActive = (item) =>
-        item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
+    const matches = (href) => pathname === href || pathname.startsWith(`${href}/`);
+    const isActive = (item) => (item.exact ? pathname === item.href : matches(item.href) || Boolean(item.also?.some(matches)));
 
     return (
         <>

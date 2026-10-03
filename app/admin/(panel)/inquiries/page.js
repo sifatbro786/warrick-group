@@ -11,6 +11,10 @@ import InquiryRowActions from "@/components/admin/inquiries/InquiryRowActions";
 import { formatRelative } from "@/lib/admin/format";
 import { cn } from "@/lib/cn";
 
+/* Reads the session on every request: not an instant navigation (see PHASES.md).
+   `instant` is per segment, so each dashboard page opts out itself. */
+export const instant = false;
+
 export const metadata = { title: "Inquiries" };
 
 /* Query string is user input: anything odd falls back to the default. */

@@ -1,4 +1,5 @@
 import { Rise, Stagger } from "@/components/motion/Reveal";
+import { itemKey } from "@/lib/format";
 
 /* Gutters around the hairline dividers. A cell only gets padding on the side
    where a divider sits, so row ends stay flush. nth-child rather than
@@ -50,8 +51,8 @@ export default function StatsSection({ heading = {}, items = [] }) {
                     margin="-80px"
                     className="mt-16 grid grid-cols-1 gap-px border-t border-line bg-line sm:grid-cols-2 lg:mt-20 lg:grid-cols-4"
                 >
-                    {items.map((metric) => (
-                        <Rise key={metric._id ?? metric.label} className={CELL}>
+                    {items.map((metric, index) => (
+                        <Rise key={itemKey(metric, index)} className={CELL}>
                             {/* The symbol carries the gold so the numeral keeps full contrast. */}
                             <dt className="flex items-start font-display text-[clamp(2.5rem,4.4vw,3.75rem)] leading-none font-bold tracking-tight text-ink">
                                 {metric.value}

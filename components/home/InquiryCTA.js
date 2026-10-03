@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Rise, Stagger } from "@/components/motion/Reveal";
+import { itemKey } from "@/lib/format";
 
 /* ==========================================================================
    InquiryCTA — routing, not collecting. Each channel is a full-width row.
@@ -41,8 +42,8 @@ export default function InquiryCTA({ heading = {}, statement, channels = [] }) {
 
                 {/* ---------------- Channels ---------------- */}
                 <div className="lg:col-span-6 lg:col-start-7 lg:pt-2">
-                    {channels.map((channel) => (
-                        <Rise key={channel._id ?? channel.path}>
+                    {channels.map((channel, index) => (
+                        <Rise key={itemKey(channel, index)}>
                             <Link
                                 href={channel.path}
                                 className="group flex items-start justify-between gap-8 border-t border-white/12 py-8 transition-colors duration-500 ease-premium hover:border-gold/60 lg:py-10"

@@ -6,6 +6,10 @@ import { CreateUserButton, UserRowActions } from "@/components/admin/users/UserM
 import { formatRelative } from "@/lib/admin/format";
 import { cn } from "@/lib/cn";
 
+/* Reads the session on every request: not an instant navigation (see PHASES.md).
+   `instant` is per segment, so each dashboard page opts out itself. */
+export const instant = false;
+
 export const metadata = { title: "Users" };
 
 const ROLE = { super_admin: "Super admin", admin: "Admin" };
