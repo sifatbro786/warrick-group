@@ -1,0 +1,24 @@
+/* Dashboard-only motion for Radix overlays (data-state open/closed).
+   Loaded by app/admin/layout.js only, so the public site never ships it.
+   prefers-reduced-motion is already handled globally in globals.css. */
+
+@keyframes admin-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes admin-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes admin-pop-in {
+    from { opacity: 0; transform: translate(var(--admin-tx, 0), var(--admin-ty, 0)) scale(0.97); }
+    to { opacity: 1; transform: translate(var(--admin-tx, 0), var(--admin-ty, 0)) scale(1); }
+}
+@keyframes admin-sheet-in { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes admin-sheet-out { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+
+.admin-overlay[data-state="open"] { animation: admin-fade-in 180ms ease-out; }
+.admin-overlay[data-state="closed"] { animation: admin-fade-out 140ms ease-in; }
+
+/* Centered dialogs are positioned with -50% translates; keep them in the
+   keyframes so the scale doesn't snap the dialog to the corner. */
+.admin-pop.fixed { --admin-tx: -50%; --admin-ty: -50%; }
+.admin-pop[data-state="open"] { animation: admin-pop-in 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+.admin-pop[data-state="closed"] { animation: admin-fade-out 120ms ease-in; }
+
+.admin-sheet[data-state="open"] { animation: admin-sheet-in 260ms cubic-bezier(0.22, 1, 0.36, 1); }
+.admin-sheet[data-state="closed"] { animation: admin-sheet-out 180ms ease-in; }

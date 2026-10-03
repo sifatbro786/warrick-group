@@ -44,12 +44,5 @@ export const contactSchema = z.object({
     website: z.string().max(200).optional().default(""),
 });
 
-/** Flatten Zod issues to `{ field: firstMessage }` for the form. */
-export function fieldErrors(error) {
-    const out = {};
-    for (const issue of error.issues) {
-        const key = issue.path[0];
-        if (key && !out[key]) out[key] = issue.message;
-    }
-    return out;
-}
+/* Shared with the admin validators; re-exported so existing imports keep working. */
+export { fieldErrors } from "./_shared.js";

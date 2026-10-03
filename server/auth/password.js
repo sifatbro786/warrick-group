@@ -9,8 +9,8 @@ import { hash, verify } from "@node-rs/argon2";
  */
 const OPTIONS = { memoryCost: 19456, timeCost: 2, parallelism: 1 };
 
-/** Policy for passwords set from the dashboard. The seed bypasses it. */
-export const PASSWORD_MIN_LENGTH = 12;
+/* The password policy lives with the schemas (shared with the admin forms). */
+export { PASSWORD_MIN_LENGTH } from "../validators/auth.js";
 
 export const hashPassword = (plain) => hash(plain, OPTIONS);
 

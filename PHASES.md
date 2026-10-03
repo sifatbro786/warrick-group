@@ -47,8 +47,8 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 |---|---|---|
 | 1 | Foundation, models, seed | ✅ Done (2026-10-01) |
 | 2 | Public site port (design 1:1) + contact form + static pages | ✅ Done (2026-10-01) |
-| 3 | Auth (JWT) + admin shell + users + inquiries inbox | ⏳ Next |
-| 4 | CMS for every page/collection + SEO manager + uploads + audit log | ☐ |
+| 3 | Auth (JWT) + admin shell + users + inquiries inbox | ✅ Done (2026-10-03) |
+| 4 | CMS for every page/collection + SEO manager + uploads + audit log | ⏳ Next |
 | 5 | SEO polish, performance, security hardening, deploy (Vercel + VPS) | ☐ |
 
 ---
@@ -78,6 +78,16 @@ static React (Vite) site to a full-stack, database-driven Next.js app.
 | Contact `?type=` | Only the form reads search params, inside `<Suspense>`; the fallback is the same form with no desk selected. | The rest of /contact stays fully static. |
 | Contact mail | Save inquiry → `after()` sends desk notice (to the desk's server-only `routeTo`, else `CONTACT_FALLBACK_INBOX`, Reply-To = visitor) + acknowledgement (echoes none of the visitor's text: no spam relay). Failures are written to `inquiry.mail.error`. | An SMTP outage never loses a lead. |
 | Rate limit / IP | 5 inquiries / 10 min per IP hash. IP from `x-forwarded-for` (first hop), hashed with `IP_HASH_SALT`; raw IP never stored. **VPS:** Nginx must *overwrite* the header: `proxy_set_header X-Forwarded-For $remote_addr;`. | |
+| Session | JWT claims `sub`, `tv` (tokenVersion), `at` (login time); **no role claim** — role is read from the DB on every request. 12 h lifetime, `proxy.js` re-signs past half-life, hard cap 7 days from login. Cookie `__Host-wg_session` when `NEXT_PUBLIC_SITE_URL` is https, `wg_session` on plain-http local runs. httpOnly, SameSite=Lax. | Demotion/deactivation bite on the next click; no session table. |
+| Auth layers | `proxy.js` = signature/expiry only, redirects to `/admin/login?next=`. `server/auth/dal.js` = the real check (user exists, active, tokenVersion matches), run by **every** admin page (`requireUser`/`requireSuperAdmin`) and every action (`authorize`). `/admin/login` is never redirected by the proxy (a signed-but-revoked token would loop); the page asks the DAL. | Layouts don't re-run on client navigation, so the panel layout is chrome, not a guard. |
+| Login brakes | 20 attempts / 15 min per IP hash (RateLimit) + 5 consecutive failures lock the account 15 min (`failedLogins`/`lockUntil`, atomic `$inc`). Unknown email verifies against a dummy argon2 hash (same timing). Deactivated account answers like a wrong password. Same message for IP throttle and account lock. | |
+| Password policy | Dashboard-set passwords ≥ 12 chars, ≥ 5 distinct chars, ≤ 128. Login only checks presence (seeded `11111111` predates the policy — **change it before launch**). Own change re-issues this session's cookie (keeps login time) and ends every other session. | |
+| User rules | super_admin only (checked in every action). Nobody changes own role / deactivates self / resets own password from Users (Account page instead). Last active super_admin can't be demoted or deactivated. Deactivate + reset bump tokenVersion. No hard delete (audit log references users). | |
+| Inquiries inbox | Views: Inbox (new+read), Unread, Archived, All; desk filter; search (escaped regex over name/email/subject/reference); 20 per page; query string Zod-parsed with fallbacks. Opening an inquiry marks it read **from a client effect**, never during render (a prefetch must not mark mail read). Any admin triages; only super_admin deletes. | |
+| Admin rendering | All `/admin` is per-request (`export const instant = false` on `app/admin/layout.js`); the session read sits inside `<Suspense>` in `app/admin/(panel)/layout.js`. Admin reads are uncached direct service calls; actions call `refresh()`. Public routes are still fully static. `X-Robots-Tag: noindex` + `Cache-Control: private, no-store` on every /admin response. | Cache Components rule: request data only behind Suspense. |
+| Admin forms | `lib/admin/useServerForm.js` = react-hook-form + zodResolver + Server Action. The **same Zod schema** (`server/validators/*`, plain Zod, no server imports) runs in the browser and inside the action. Action result contract: `{ status: "success"|"invalid"|"error", errors?, message? }`. | One pattern for every Phase 4 editor. |
+| Admin UI kit | Hand-written shadcn-style components on `radix-ui` (Dialog, AlertDialog, DropdownMenu, Tooltip, Slot) in `components/admin/ui/`, sonner toasts, lucide icons. No shadcn CLI / extra CSS framework. Overlay motion in `app/admin/admin.css` (admin-only). | Brand tokens reused; public bundle untouched. |
+| Admin time zone | Dates render on the server pinned to `Asia/Dhaka` (`lib/admin/format.js`). | Vercel runs in UTC. |
 | Legal pages | `/privacy`, `/terms` are static files with plain-language copy describing what the site actually does. **Legal counsel must review before launch.** | Client: not CMS-managed. |
 
 ---
@@ -97,7 +107,14 @@ app/                       Next.js routes
                            @modal/(.)[slug]/ (dialog), @modal/default.js
     privacy/ terms/        static legal pages
     not-found.js error.js loading.js
-  admin/                   dashboard               (Phase 3–4)
+  admin/                   dashboard
+    layout.js              noindex metadata, Toaster, admin.css, instant = false
+    login/                 sign-in (brand panel + form; DAL gate in Suspense)
+    (panel)/               signed-in area: layout (AdminShell in Suspense), loading, error, not-found
+      page.js              overview
+      inquiries/ inquiries/[id]/  inbox + reader
+      users/               super_admin only
+      account/             profile, password, sign out everywhere
   uploads/[...path]/       serves /uploads files   (Phase 4)
   globals.css              design tokens (ported 1:1)
 components/
@@ -107,19 +124,29 @@ components/
   dialog/Dialog.js         the one modal shell (client)
   home/ businesses/ innovation/ news/ contact/ legal/   page sections
   NotFoundView.js ErrorView.js
+  admin/ui/                Button, Form (Input/Select/Textarea/Field), Panel, Badge, Modal,
+                           ConfirmDialog, Menu, PasswordInput, Toaster, toast
+  admin/shell/AdminShell   sidebar (collapsible, cookie-persisted), mobile drawer, user menu
+  admin/{forms,inquiries,users,account}/   client islands per screen
+lib/admin/                 useServerForm.js (RHF + action), format.js (admin dates)
+proxy.js                   /admin gate: JWT check, redirect, sliding refresh, noindex headers
 lib/                       format.js (dates, ordinals, labels, maps URLs), cn.js
 server/                    server-only code — never import from a Client Component
   env.js                   Zod-validated env, grouped by feature
   db/connect.js            cached Mongoose connection
   auth/password.js         argon2id hash/verify
+  auth/jwt.js              sign/verify session JWT, cookie name/options (used by proxy too)
+  auth/dal.js              getCurrentUser / requireUser / requireSuperAdmin / authorize
+  auth/session.js          startSession / endSession (cookie writes, actions only)
   models/                  Mongoose models (+ index.js barrel)
   services/                business logic / data access
     _cache.js              TAGS + CONTENT_LIFE + toPlain()  ← Phase 4 updateTag() uses TAGS
     content.js             cached public reads (pages, businesses, news, leaders…)
     seo.js                 buildRootMetadata / buildPageMetadata
     inquiry.js mail.js rate-limit.js request.js
-  validators/              Zod input schemas (contact.js)
-  actions/                 Server Actions (contact.js)
+    auth.js users.js inquiry-admin.js dashboard.js audit.js   (Phase 3)
+  validators/              Zod schemas — isomorphic: _shared.js, contact.js, auth.js
+  actions/                 Server Actions: contact.js, auth.js, users.js, inquiries.js
 scripts/seed/              seed script + data/ (content snapshot of warrick-frontend)
 uploads/                   admin uploads (gitignored)
 public/                    logo.png, asma.jpeg, warrick.jpeg
@@ -161,6 +188,10 @@ no `//host`); images must be a local path or `https://`.
 - **Server boundary:** files under `server/services`, `server/actions` start
   with `import "server-only"`. Models, `db/connect.js`, `env.js` and
   `auth/password.js` do **not**, because the seed script runs them in plain Node.
+  `auth/jwt.js` doesn't either (proxy.js imports it). `server/validators/*` are
+  the one part of `server/` Client Components may import: plain Zod only.
+- **Admin pages:** first line of every page is `await requireUser()` or
+  `await requireSuperAdmin()`. Every admin action starts with `authorize()`.
 - **Every Server Action re-checks the session and role.** Actions are public
   POST endpoints; hiding a button is not authorization.
 - **Validation:** Zod at every boundary (form → action, route handler). Mongoose
@@ -207,7 +238,7 @@ Copy `.env.example` → `.env.local` and fill in `MONGODB_URI`, `SMTP_*`, `IP_HA
 - Add section anchors: `#leadership`, `#board`, `#governance`, `#reports`.
 - Placeholder routes kept as a commented list in code.
 
-### Phase 3 — Auth + admin shell
+### Phase 3 — Auth + admin shell ✅
 - `/admin/login`, JWT session cookie, `proxy.js` optimistic redirect, DAL `verifySession()`.
 - Login rate limit + account lockout; change password; log out everywhere.
 - Users module (super_admin only): create, deactivate, reset password, role change; last-super_admin guard.
@@ -259,3 +290,8 @@ These are seeded exactly as the React site rendered them. Fix from the dashboard
 **Verified (against a seeded database):** `next build` prerenders all 35 routes as static; eslint and an esbuild syntax pass are clean. Screenshot diff vs warrick-frontend at 1440px and 390px on all 9 pages: identical except the removed TopBar (36px) and the removed footer links. No console or hydration errors. Hero (autoplay, arrows, entity strip, rewind), Businesses dropdown, mobile drawer, news filter, news dialog (open/close/reopen, browser back/forward), direct article URL, venture dialog, `/contact?type=media` preselect, 404s. Contact: client + server validation, inquiry saved, rate limit trips on the 6th submit, desk mail + acknowledgement delivered to a test SMTP server, SMTP failure recorded on the inquiry.
 **Not verified here:** Google Fonts download at build (sandbox has no access; fonts were swapped for local copies only for testing) and real Unsplash images (stubbed).
 
+### Phase 3 — 2026-10-03
+**Added:** `proxy.js`; `server/auth/{jwt,dal,session}.js`; `server/services/{auth,users,inquiry-admin,dashboard,audit}.js`; `server/actions/{auth,users,inquiries}.js`; `server/validators/{_shared,auth}.js`; `app/admin/**` (layout, admin.css, login, (panel): overview, inquiries + [id], users, account, loading, error, not-found); `components/admin/**`; `lib/admin/{useServerForm,format}.js`. Dependencies: `jose`, `react-hook-form`, `@hookform/resolvers`, `sonner`, `radix-ui`.
+**Changed:** `server/auth/password.js` (PASSWORD_MIN_LENGTH now re-exported from `validators/auth.js`), `server/validators/contact.js` (`fieldErrors` moved to `_shared.js`, re-exported).
+**Verified (seeded DB, `next build` + `next start`, Playwright at 1440/1280/390 px):** build clean, public routes still static (○), all /admin routes partial-prerender; eslint + esbuild clean; no console errors. Login: client + server validation, wrong password, `?next=` return, `next=//evil.com` → /admin, tampered cookie → login + cookie cleared, `X-Robots-Tag`/`no-store` headers. Lockout: 5th wrong password locks, correct password refused while locked, Users shows "Locked", Unlock works. Roles: admin has no Users link, `/admin/users` → /admin, no Delete on inquiries. Deactivate → that user's open session is out on next click and login says "Incorrect email or password"; reactivate. Create user (policy errors, generator, duplicate email). Change password (wrong current, success keeps this session, other session logged out). Sign out everywhere. Inbox: tabs/counts, search (incl. `<script>` rendered escaped, regex chars), garbage query params, archive from row menu, open → marked read + sidebar badge drops, delete. Sidebar collapse persists across reload, tooltips; mobile drawer opens/closes on navigation; no horizontal overflow at 390 px.
+**Not verified here:** tested against FerretDB (MongoDB-compatible) instead of real MongoDB — it lacks TTL/partial indexes and projections in findAndModify, which were shimmed for the test only; the code uses standard MongoDB features. Google Fonts swapped for local copies during the test build (sandbox has no access).
