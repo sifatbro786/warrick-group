@@ -255,7 +255,7 @@ Copy `.env.example` → `.env.local` and fill in `MONGODB_URI`, `SMTP_*`, `IP_HA
 - `sitemap.js`, `robots.js`, JSON-LD (Organization, WebSite, BreadcrumbList, NewsArticle), dynamic OG images.
 - Lighthouse ≥ 95, bundle analysis, `LazyMotion`, LCP preload; responsive QA at 360/768/1024/1440.
 - CSP, final header review, dependency audit.
-- Vercel deploy guide;
+- Vercel deploy guide; create vercel.json
 
 ---
 
