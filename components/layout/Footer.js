@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "@/components/ui/SmartImage";
 import { isExternal, itemKey } from "@/lib/format";
 
 /* ==========================================================================
@@ -60,10 +61,23 @@ export default function Footer({ brand, footer, offices, year }) {
                 <div className="grid gap-x-8 gap-y-14 border-b border-white/10 py-16 sm:grid-cols-2 lg:grid-cols-12 lg:gap-x-12 lg:py-20">
                     {/* ---------------- Brand and desk ---------------- */}
                     <div className="sm:col-span-2 lg:col-span-3">
-                        <Link href="/" className="group inline-block">
-                            <p className="font-display text-[clamp(1.125rem,1.6vw,1.5rem)] leading-none font-bold tracking-widest text-white uppercase transition-colors duration-500 ease-premium group-hover:text-gold-light">
-                                {brand.legalName}
-                            </p>
+                        {/* Same lockup as the navbar Wordmark, reversed out on royal-night. */}
+                        <Link
+                            href="/"
+                            aria-label={`${brand.name} — home`}
+                            className="group inline-flex items-center gap-3.5"
+                        >
+                            <Image
+                                src={brand.logo || "/logo.png"}
+                                alt=""
+                                width={552}
+                                height={435}
+                                sizes="56px"
+                                className="h-10 w-auto shrink-0 transition-opacity duration-500 ease-premium group-hover:opacity-85"
+                            />
+                            <span className="font-display text-[clamp(1.375rem,2vw,1.75rem)] leading-none font-medium tracking-[0.01em] whitespace-nowrap text-white transition-colors duration-500 ease-premium group-hover:text-gold-light">
+                                {brand.name}
+                            </span>
                         </Link>
 
                         {brand.footerDescription ? (

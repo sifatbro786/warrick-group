@@ -21,18 +21,18 @@ function Wordmark({ brand, onClick, preload = false }) {
             href="/"
             onClick={onClick}
             aria-label={`${brand.name} — home`}
-            className="group flex flex-col items-center justify-center gap-1"
+            className="group flex items-center gap-3"
         >
             <Image
                 src={brand.logo || "/logo.png"}
                 alt=""
                 width={552}
                 height={435}
-                sizes="40px"
+                sizes="48px"
                 preload={preload}
-                className="h-7 w-auto transition-opacity duration-500 ease-premium group-hover:opacity-85"
+                className="h-8 w-auto shrink-0 transition-opacity duration-500 ease-premium group-hover:opacity-85"
             />
-            <span className="font-display text-[14px] leading-none font-bold tracking-[0.02em] text-royal-dark transition-colors duration-500 ease-premium group-hover:text-royal-light">
+            <span className="font-display text-[20px] leading-none font-medium tracking-[0.01em] whitespace-nowrap text-royal-dark transition-colors duration-500 ease-premium group-hover:text-royal-light">
                 {brand.name}
             </span>
         </Link>
